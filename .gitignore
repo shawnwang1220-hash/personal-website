@@ -1,0 +1,12 @@
+# 原始模板克隆，仅作来源参考，不纳入仓库
+blog-template/
+
+# 构建/打包产物
+dist/
+
+# 本地缓存与配置
+.wrangler/
+.workbuddy/
+
+# 空目录占位
+posts/
