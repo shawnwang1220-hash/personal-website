@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>王天旭 · 个人简历</title>
+  <meta name="description" content="王天旭 — 7 年 B2B 数字营销与 MarTech 经验，专注企业数字化获客体系及营销运营。" />
+  <meta name="author" content="王天旭" />
+  <link rel="icon" type="image/svg+xml" href="assets/avatar.svg" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <style>
+    /* ===== 简历专属样式（复用全局 CSS 变量） ===== */
+    .resume-wrap { max-width: 880px; margin: 0 auto; padding: 40px 20px 64px; }
+    .resume {
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 44px 48px;
+    }
+    .resume-header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 18px; border-bottom: 2px solid var(--accent); padding-bottom: 22px; margin-bottom: 26px; }
+    .resume-name { font-size: clamp(28px, 5vw, 38px); margin: 0; letter-spacing: -0.5px; }
+    .resume-role { color: var(--accent); font-weight: 600; margin: 6px 0 0; font-size: 16px; }
+    .resume-contact { text-align: right; font-size: 13.5px; color: var(--text-soft); line-height: 1.9; }
+    .resume-contact a { color: var(--text-soft); }
+    .resume-contact .row { display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: flex-end; }
+
+    .r-section { margin: 30px 0 0; }
+    .r-section:first-of-type { margin-top: 0; }
+    .r-h { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; margin: 0 0 14px; }
+    .r-h::before { content: ""; width: 5px; height: 18px; border-radius: 3px; background: var(--accent); display: inline-block; }
+    .r-summary { color: var(--text-soft); line-height: 1.85; margin: 0; }
+
+    .job { margin: 0 0 22px; padding-left: 16px; border-left: 2px solid var(--border); }
+    .job:last-child { margin-bottom: 0; }
+    .job-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; }
+    .job-title { font-size: 16px; font-weight: 700; color: var(--text); }
+    .job-date { font-size: 13px; color: var(--text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .job-meta { font-size: 13px; color: var(--accent); font-weight: 600; margin: 2px 0 8px; }
+    .job-points { margin: 0; padding-left: 1.1em; }
+    .job-points li { margin: 6px 0; color: var(--text-soft); line-height: 1.7; }
+    .job-points strong { color: var(--text); }
+
+    .skill-group { margin: 0 0 12px; }
+    .skill-group:last-child { margin-bottom: 0; }
+    .skill-label { font-size: 13px; font-weight: 700; color: var(--text); margin-right: 8px; }
+    .skill-items { font-size: 14px; color: var(--text-soft); }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .tag { font-size: 12.5px; padding: 5px 11px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+    .edu-item { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 14px; padding: 6px 0; }
+    .edu-item + .edu-item { border-top: 1px dashed var(--border); }
+    .edu-name { font-weight: 700; }
+    .edu-degree { color: var(--text-soft); font-size: 14px; }
+    .edu-date { color: var(--text-faint); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+    .resume-actions { display: flex; gap: 10px; justify-content: flex-end; margin: 18px 0 0; }
+
+    /* ===== 打印 / 导出 PDF ===== */
+    @media print {
+      :root { --bg: #fff; --bg-elev: #fff; --text: #1a1a1a; --text-soft: #333; --text-faint: #555; }
+      html, body { background: #fff !important; }
+      .site-header, .resume-actions, .site-footer, .back-to-top { display: none !important; }
+      .resume-wrap { max-width: none; padding: 0; }
+      .resume { border: none; box-shadow: none; border-radius: 0; padding: 0; }
+      .job, .edu-item { break-inside: avoid; }
+      .r-section { break-inside: avoid; }
+      a { text-decoration: none; color: inherit; }
+    }
+    @media (max-width: 640px) {
+      .resume { padding: 28px 22px; }
+      .resume-header { flex-direction: column; }
+      .resume-contact { text-align: left; }
+      .resume-contact .row { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== 顶部导航（复用站点样式） ===== -->
+  <header class="site-header" id="top">
+    <nav class="nav container">
+      <a class="brand" href="index.html" aria-label="返回博客首页">
+        <img src="assets/avatar.svg" alt="" class="brand-avatar" />
+        <span>王天旭 · 简历</span>
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">博客首页</a></li>
+        <li><a href="#contact">联系方式</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色模式" title="切换深色 / 浅色模式">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="resume-wrap">
+    <div class="resume" id="resume">
+      <!-- 头部：姓名 + 联系方式 -->
+      <header class="resume-header">
+        <div>
+          <h1 class="resume-name">王天旭</h1>
+          <p class="resume-role">数字营销 &amp; MarTech 顾问 · 海外 B2B 获客</p>
+        </div>
+        <div class="resume-contact">
+          <div class="row"><span>电话：15811183360</span></div>
+          <div class="row"><span>邮箱：<a href="mailto:shawnwang1220@gmail.com">shawnwang1220@gmail.com</a></span></div>
+          <div class="row"><span>所在地：北京</span><span>性别：男</span><span>学历：硕士</span></div>
+        </div>
+      </header>
+
+      <!-- 自我评价 -->
+      <section class="r-section">
+        <h2 class="r-h">自我评价</h2>
+        <p class="r-summary">
+          7 年 B2B 数字营销经验，专注于企业数字化获客体系及营销运营建设。具备成熟 B2B SaaS 企业营销体系持续优化经验，
+          同时拥有传统企业海外数字营销体系 0-1 建设实践。熟悉 Google Ads、Salesforce、Pardot、GA4、GTM 等 MarTech 平台，
+          能够独立推动数字化获客、营销自动化、CRM 运营及 Lead Management 全流程持续优化。
+        </p>
+      </section>
+
+      <!-- 工作经历 -->
+      <section class="r-section">
+        <h2 class="r-h">工作经历</h2>
+
+        <div class="job">
+          <div class="job-head">
+            <span class="job-title">独立数字营销与 MarTech 顾问</span>
+            <span class="job-date">2025.10 - 至今</span>
+          </div>
+          <ul class="job-points">
+            <li>独立实践 Server-Side Tagging、GTM、GA4 等数字营销数据技术，搭建并调试 Web 与 Server-Side 数据链路，完成事件追踪、数据回传及归因相关方案验证。</li>
+            <li>基于 Dify、Notion 等 AI 与自动化工具搭建个人工作流，将网页、文档等非结构化信息提取、整理并转换为结构化数据，形成可复用的信息处理流程。</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-head">
+            <span class="job-title">博睿数据</span>
+            <span class="job-date">2025.01 - 2025.09</span>
+          </div>
+          <div class="job-meta">Overseas Digital Marketing ｜ 计算机软件</div>
+          <ul class="job-points">
+            <li>企业海外业务 0-1 阶段，负责数字化获客体系及 Marketing Technology 建设，支撑海外市场启动。</li>
+            <li><strong>海外数字营销体系 0-1 建设：</strong>独立规划并落地官网、广告平台、Marketing Stack 及 Lead Management 流程，为海外业务建立完整的数字化获客基础设施。</li>
+            <li><strong>Marketing Stack 建设：</strong>独立完成 Google Ads、LinkedIn Ads、GA4、GTM、Zoho Forms 及纷享销客等营销平台部署与实施，打通营销 Tracking、线索采集及基础数据流。</li>
+            <li><strong>Marketing Automation &amp; CRM：</strong>设计海外线索管理流程，搭建表单自动化、邮件通知、数据同步及 Lead Routing 机制，提升海外线索流转效率。</li>
+            <li><strong>海外品牌与运营支持：</strong>负责海外官网、LinkedIn 企业主页及 PR 发布等运营工作，持续完善企业海外品牌曝光及数字化运营能力。</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-head">
+            <span class="job-title">氦图科技 / hireEZ</span>
+            <span class="job-date">2021.05 - 2024.07</span>
+          </div>
+          <div class="job-meta">Sr. Marketing Operation ｜ IT 服务</div>
+          <ul class="job-points">
+            <li>全球 B2B AI 招聘 SaaS 企业，负责北美及全球市场 Marketing Operations，支持数字化获客、Marketing Systems 及 Sales 协同。</li>
+            <li><strong>数字化获客体系：</strong>管理 Google Ads、LinkedIn Ads 等海外营销渠道，建立广告与 CRM 销售数据闭环，推动 Google Ads ROAS 提升 3.87 倍，助力公司 ARR 增长 2.5 倍。</li>
+            <li><strong>营销数据与 Tracking 体系：</strong>主导 Universal Analytics 向 GA4 迁移，规划网站事件、广告归因及营销数据采集标准，保障营销数据准确性（GTM、GA4）。</li>
+            <li><strong>Marketing Automation：</strong>设计营销自动化及 Lead Nurture 流程，建立线索培育、客户分层及自动化触达机制，持续提升 Marketing 与 Sales 协同效率（Pardot）。</li>
+            <li><strong>CRM 运营：</strong>持续优化 Lead Management 流程，包括 Lead、Contact、Campaign 及 Opportunity 等核心对象管理，支持 Marketing 与 Sales 线索协同及业务运营。</li>
+            <li><strong>ABM 及营销系统协同：</strong>参与 6sense ABM 平台实施，基于 ICP、Buying Stage 及营销行为构建目标客户分层，协同广告平台、CRM 及营销自动化系统开展精准营销。</li>
+            <li><strong>营销数据分析：</strong>建立营销数据分析体系，持续监控获客、线索转化及销售漏斗表现，为营销策略优化及管理层决策提供数据支持（GA4、Salesforce、CRMA）。</li>
+            <li><strong>Marketing Systems：</strong>推动 Google Ads、GA4、Salesforce、Pardot、6sense、CRMA 等平台跨系统协同，持续优化 Marketing Technology Stack，支撑全球营销运营。</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-head"><span class="job-title">优必科技</span><span class="job-date">2021.03 - 2021.05</span></div>
+          <div class="job-meta">海外投放经理 ｜ IT 服务</div>
+        </div>
+        <div class="job">
+          <div class="job-head"><span class="job-title">海石互动</span><span class="job-date">2020.05 - 2021.03</span></div>
+          <div class="job-meta">海外渠道优化师</div>
+        </div>
+        <div class="job">
+          <div class="job-head"><span class="job-title">鑫互联科技</span><span class="job-date">2019.02 - 2020.01</span></div>
+          <div class="job-meta">优化师 ｜ IT 服务</div>
+        </div>
+        <div class="job">
+          <div class="job-head"><span class="job-title">承德露露</span><span class="job-date">2017.11 - 2018.10</span></div>
+          <div class="job-meta">新媒体专员 ｜ 快速消费品</div>
+        </div>
+        <div class="job">
+          <div class="job-head"><span class="job-title">北京德农</span><span class="job-date">2017.05 - 2017.11</span></div>
+          <div class="job-meta">科研助理</div>
+        </div>
+      </section>
+
+      <!-- 相关技能 -->
+      <section class="r-section" id="skills">
+        <h2 class="r-h">相关技能</h2>
+        <div class="skill-group">
+          <span class="skill-label">职能方向</span>
+          <span class="skill-items">Marketing Operations ｜ Marketing Systems ｜ Marketing Automation ｜ CRM</span>
+        </div>
+        <div class="skill-group">
+          <span class="skill-label">工具平台</span>
+          <div class="tags">
+            <span class="tag">Google Ads</span><span class="tag">LinkedIn Ads</span><span class="tag">GA4</span>
+            <span class="tag">Google Tag Manager</span><span class="tag">Salesforce</span><span class="tag">Pardot</span>
+            <span class="tag">6sense</span><span class="tag">Zoho</span><span class="tag">纷享销客</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <span class="skill-label">数据与分析</span>
+          <span class="skill-items">Lead Management ｜ Marketing Analytics ｜ SQL ｜ Looker Studio ｜ CRMA</span>
+        </div>
+      </section>
+
+      <!-- 教育经历 -->
+      <section class="r-section" id="contact">
+        <h2 class="r-h">教育经历</h2>
+        <div class="edu-item">
+          <span><span class="edu-name">英国诺丁汉大学</span> <span class="edu-degree">农学 · 硕士</span></span>
+          <span class="edu-date">2015.09 - 2016.12</span>
+        </div>
+        <div class="edu-item">
+          <span><span class="edu-name">中国农业大学</span> <span class="edu-degree">农学 · 学士</span></span>
+          <span class="edu-date">2011.09 - 2015.07</span>
+        </div>
+      </section>
+
+      <div class="resume-actions">
+        <button class="btn btn-primary" id="printBtn" type="button">下载 / 打印 PDF</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© <span id="year"></span> 王天旭 · 个人简历</p>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" type="button" aria-label="返回顶部" title="返回顶部">↑</button>
+
+  <script>
+    // 主题切换（与站点一致）
+    (function () {
+      var root = document.documentElement;
+      try {
+        var saved = localStorage.getItem('theme');
+        if (saved) root.setAttribute('data-theme', saved);
+        else if (window.matchMedia('(prefers-color-scheme: dark)').matches) root.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+      var btn = document.getElementById('themeToggle');
+      var icon = btn && btn.querySelector('.theme-icon');
+      function sync() { if (icon) icon.textContent = root.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙'; }
+      sync();
+      if (btn) btn.addEventListener('click', function () {
+        var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('theme', next); } catch (e) {}
+        sync();
+      });
+      var y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear();
+      var toTop = document.getElementById('backToTop');
+      if (toTop) {
+        window.addEventListener('scroll', function () { toTop.classList.toggle('show', window.scrollY > 400); }, { passive: true });
+        toTop.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+      }
+      var pb = document.getElementById('printBtn');
+      if (pb) pb.addEventListener('click', function () { window.print(); });
+    })();
+  </script>
+</body>
+</html>
