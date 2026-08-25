@@ -10,3 +10,8 @@ dist/
 
 # 空目录占位
 posts/
+
+# 简历/PDF 处理的中间产物（非站点文件）
+*.png
+extract_resume.py
+render_resume.py
