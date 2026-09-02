@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  post: CollectionEntry<"posts">;
+}
+
+const { post } = Astro.props;
+const { title, description, pubDate, tags } = post.data;
+
+// 用 ISO 日期，避免服务端与客户端时区差异导致水合不一致
+const dateText = pubDate.toISOString().slice(0, 10);
+const dateAttr = pubDate.toISOString();
+---
+
+<article class="post-card reveal">
+  <h3><a href={`/posts/${post.id}`}>{title}</a></h3>
+  <p class="excerpt">{description}</p>
+  <div class="post-tags">
+    {tags.map((tag) => <a class="tag" href={`/tags/${encodeURIComponent(tag)}`}>{tag}</a>)}
+  </div>
+  <div class="post-meta">
+    <time datetime={dateAttr}>{dateText}</time>
+    <span class="dot"></span>
+    <span>阅读全文</span>
+  </div>
+</article>

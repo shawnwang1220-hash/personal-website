@@ -1,0 +1,113 @@
+---
+/**
+ * Markdown 实时编辑器 —— 唯一的交互「岛」。
+ * marked 由 Astro 打包，只在这个组件被用到的页面加载，
+ * 其余页面产出的仍是零 JS 的纯静态 HTML。
+ */
+---
+
+<div class="editor-toolbar reveal">
+  <div class="editor-tools">
+    <button class="btn btn-sm" id="insertSample" type="button">插入示例</button>
+    <button class="btn btn-sm" id="clearEditor" type="button">清空</button>
+    <button class="btn btn-sm" id="downloadMd" type="button">下载 .md</button>
+    <button class="btn btn-sm" id="copyHtml" type="button">复制 HTML</button>
+  </div>
+  <span class="editor-hint" id="editorHint">实时预览</span>
+</div>
+
+<div class="editor-panes reveal">
+  <div class="editor-pane">
+    <label for="mdInput" class="pane-label">Markdown 输入</label>
+    <textarea id="mdInput" spellcheck="false" placeholder="在此输入 Markdown..."></textarea>
+  </div>
+  <div class="editor-pane">
+    <label class="pane-label">实时预览</label>
+    <div class="editor-preview markdown-body" id="mdPreview"></div>
+  </div>
+</div>
+
+<script>
+  import { marked } from "marked";
+
+  marked.setOptions({ gfm: true, breaks: true });
+
+  const SAMPLE_MD = `# 实时 Markdown 编辑器
+
+在左侧输入，右侧**即时**看到带样式的 HTML。
+
+## 功能一览
+- 支持 *斜体*、**加粗** 与 \`代码\`
+- 支持列表、引用、表格
+- 一键导出 .md 或复制 HTML
+
+> 试着改改看，排版会立刻更新。
+
+\`\`\`js
+console.log("Hello, Markdown!");
+\`\`\`
+`;
+
+  const mdInput = document.getElementById("mdInput") as HTMLTextAreaElement | null;
+  const mdPreview = document.getElementById("mdPreview");
+  const editorHint = document.getElementById("editorHint");
+
+  function updatePreview() {
+    if (!mdInput || !mdPreview) return;
+    mdPreview.innerHTML = marked.parse(mdInput.value ?? "");
+    const words = ((mdInput.value ?? "").trim().match(/\S+/g) || []).length;
+    if (editorHint) editorHint.textContent = `实时预览 · ${words} 词`;
+  }
+
+  function flash(msg: string) {
+    if (!editorHint) return;
+    const old = editorHint.textContent;
+    editorHint.textContent = msg;
+    setTimeout(() => {
+      editorHint.textContent = old;
+    }, 1600);
+  }
+
+  if (mdInput) {
+    mdInput.value = SAMPLE_MD;
+    mdInput.addEventListener("input", updatePreview);
+    updatePreview();
+  }
+
+  document.getElementById("insertSample")?.addEventListener("click", () => {
+    if (mdInput) {
+      mdInput.value = SAMPLE_MD;
+      updatePreview();
+      mdInput.focus();
+    }
+  });
+
+  document.getElementById("clearEditor")?.addEventListener("click", () => {
+    if (mdInput) {
+      mdInput.value = "";
+      updatePreview();
+      mdInput.focus();
+    }
+  });
+
+  document.getElementById("downloadMd")?.addEventListener("click", () => {
+    if (!mdInput) return;
+    const blob = new Blob([mdInput.value], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "my-post.md";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("copyHtml")?.addEventListener("click", async () => {
+    if (!mdPreview) return;
+    try {
+      await navigator.clipboard.writeText(mdPreview.innerHTML);
+      flash("已复制 HTML 到剪贴板");
+    } catch {
+      flash("复制失败，请手动选择");
+    }
+  });
+</script>

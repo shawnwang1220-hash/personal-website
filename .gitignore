@@ -1,0 +1,21 @@
+# 依赖（176M，绝对不能提交）
+node_modules/
+
+# npm 缓存（本机环境特殊配置，238M，绝对不能提交）
+.npm-cache/
+
+# 构建产物（Cloudflare Pages 会自己构建）
+dist/
+.astro/
+
+# 日志与环境变量
+*.log
+npm-debug.log*
+.env
+.env.*
+
+# 编辑器与系统
+.DS_Store
+.idea/
+.vscode/
+Thumbs.db

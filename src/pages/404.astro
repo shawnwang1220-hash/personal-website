@@ -1,0 +1,15 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="页面不存在" description="请求的页面不存在。" noindex>
+  <section class="section container" style="max-width: 640px; text-align: center; padding: 100px 20px;">
+    <div style="font-size: 72px; font-weight: 700; line-height: 1; opacity: 0.25;">404</div>
+    <h1 style="font-size: 22px; margin: 12px 0;">这个页面不存在</h1>
+    <p style="opacity: 0.8; margin-bottom: 28px;">链接可能已失效或输入有误。</p>
+    <p>
+      <a class="btn btn-primary" href="/">返回首页</a>
+      <a class="btn btn-ghost" href="/posts">浏览文章</a>
+    </p>
+  </section>
+</BaseLayout>
