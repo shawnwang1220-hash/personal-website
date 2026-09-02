@@ -21,13 +21,12 @@ export const SITE = {
       "7 年 B2B 数字营销经验，专注企业数字化获客体系与海外营销运营。这里记录营销实践、工具方法与可复用的思路。",
     location: "中国 · 北京",
     /**
-     * 邮箱留空是有意为之：原站依赖 Cloudflare 的 Email Obfuscation 做保护，
-     * 迁移后仍建议在 Cloudflare 后台开启该功能，避免明文暴露。
-     * 需要公开邮箱时在此填写，contact 区块会自动渲染 mailto 链接。
+     * 占位符（非真实信息）：部署前替换为真实邮箱/电话，或保持留空。
+     * Cloudflare 会对邮箱做 Email Obfuscation 保护，留空则简历页显示「待补充」。
      */
-    email: "",
-    /** 电话同样建议不放公开页面，需要时填写 */
-    phone: "",
+    email: "user@example.com",
+    /** 占位符：替换为真实手机号，或保持留空 */
+    phone: "138-0000-0000",
   },
 
   social: {

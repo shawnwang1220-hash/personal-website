@@ -5,11 +5,14 @@ import { SITE } from "../site.config";
 const description =
   "王天旭的在线简历 —— 7 年 B2B 数字营销经验，专注海外数字化获客体系与 Marketing Technology 建设。";
 
-/** 邮箱从 site.config 读取；留空则不渲染联系方式，避免产生死链 */
+/** 邮箱/电话从 site.config 读取；占位符（含 example.com）不生成 mailto 死链 */
 const email = SITE.author.email;
-const emailLink = email
-  ? `<a href="mailto:${email}">${email}</a>`
-  : `<span>（邮箱未配置，见 src/site.config.ts）</span>`;
+const phone = SITE.author.phone;
+const isPlaceholderEmail = !email || email.includes("example.com");
+const emailLink = isPlaceholderEmail
+  ? (email || "邮箱待补充")
+  : `<a href="mailto:${email}">${email}</a>`;
+const phoneText = phone || "电话待补充";
 ---
 
 <BaseLayout title="个人简历" description={description} ogType="article">
@@ -22,7 +25,7 @@ const emailLink = email
           <p class="resume-role">数字营销 &amp; MarTech 顾问 · 海外 B2B 获客</p>
         </div>
         <div class="resume-contact">
-          <div class="row"><span>电话：15811183360</span></div>
+          <div class="row"><span>电话：{phoneText}</span></div>
           <div class="row"><span>邮箱：{emailLink}</span></div>
           <div class="row"><span>所在地：北京</span><span>性别：男</span><span>学历：硕士</span></div>
         </div>
