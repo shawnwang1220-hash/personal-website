@@ -1,0 +1,19 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MarkdownEditor from "../components/MarkdownEditor.astro";
+
+const description =
+  "在线 Markdown 实时编辑器：左侧输入，右侧即时渲染，支持导出 .md 与复制 HTML。";
+---
+
+<BaseLayout title="Markdown 编辑器" description={description}>
+  <section class="section container editor-page">
+    <h1 class="section-title reveal"><span class="accent">#</span> Markdown 编辑器</h1>
+    <p class="section-sub reveal">
+      在左侧输入 Markdown，右侧即时渲染为带样式的 HTML。支持导出
+      <code>.md</code> 文件或复制 HTML。
+    </p>
+
+    <MarkdownEditor />
+  </section>
+</BaseLayout>

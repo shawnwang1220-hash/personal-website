@@ -1,17 +1,30 @@
-# 原始模板克隆，仅作来源参考，不纳入仓库
-blog-template/
+# 依赖（176M，绝对不能提交）
+node_modules/
 
-# 构建/打包产物
+# npm 缓存（本机环境特殊配置，238M，绝对不能提交）
+.npm-cache/
+
+# 构建产物（Cloudflare Pages 会自己构建）
 dist/
+.astro/
 
-# 本地缓存与配置
+# 日志与环境变量
+*.log
+npm-debug.log*
+.env
+.env.*
+
+# 编辑器与系统
+.DS_Store
+.idea/
+.vscode/
+Thumbs.db
+
+# 本机工作区残留（非站点文件，合并回原 .gitignore 避免误提交 133 个模板文件）
+blog-template/
 .wrangler/
 .workbuddy/
-
-# 空目录占位
-posts/
-
-# 简历/PDF 处理的中间产物（非站点文件）
 *.png
 extract_resume.py
 render_resume.py
+gh_api_push.py

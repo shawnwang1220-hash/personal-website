@@ -1,0 +1,60 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostCard from "../../components/PostCard.astro";
+
+const posts = (await getCollection("posts", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// 按年份分组，长列表更好扫读
+const years = [...new Set(posts.map((p) => p.data.pubDate.getFullYear()))].sort(
+  (a, b) => b - a
+);
+
+const allTags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+---
+
+<BaseLayout
+  title="文章"
+  description="王天旭关于海外 B2B 数字营销、GA4 数据追踪与营销自动化的实践记录。"
+>
+  <section class="section container">
+    <h1 class="section-title reveal"><span class="accent">#</span> 文章</h1>
+    <p class="section-sub reveal">
+      共 {posts.length} 篇 · 全部以 Markdown 维护，<a href="/rss.xml">RSS 订阅</a>
+    </p>
+
+    {
+      allTags.length > 0 && (
+        <div class="tags reveal" style="margin-bottom: 28px;">
+          {allTags.map((t) => (
+            <a class="tag" href={`/tags/${encodeURIComponent(t)}`}>{t}</a>
+          ))}
+        </div>
+      )
+    }
+
+    {
+      years.map((year) => (
+        <div style="margin-bottom: 32px;">
+          <h2 class="section-sub reveal" style="margin-bottom: 16px;">{year}</h2>
+          <div class="post-grid">
+            {posts
+              .filter((p) => p.data.pubDate.getFullYear() === year)
+              .map((post) => (
+                <PostCard post={post} />
+              ))}
+          </div>
+        </div>
+      ))
+    }
+
+    {
+      posts.length === 0 && (
+        <p class="reveal">
+          还没有文章。在 <code>src/content/posts/</code> 新建一个 .md 文件即可发布。
+        </p>
+      )
+    }
+  </section>
+</BaseLayout>

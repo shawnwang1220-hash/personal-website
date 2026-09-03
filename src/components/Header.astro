@@ -1,0 +1,91 @@
+---
+import { SITE } from "../site.config";
+
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === "/" ? path === "/" : path.startsWith(href);
+---
+
+<header class="site-header" id="top">
+  <nav class="nav container">
+    <a class="brand" href="/" aria-label="返回首页">
+      <img src="/avatar.svg" alt="" class="brand-avatar" />
+      <span>王天旭 · Shawn</span>
+    </a>
+
+    <ul class="nav-links" id="navLinks">
+      {
+        SITE.nav.map((item) => (
+          <li>
+            <a href={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="nav-actions">
+      <button
+        class="theme-toggle"
+        id="themeToggle"
+        type="button"
+        aria-label="切换深色 / 浅色模式"
+        title="切换深色 / 浅色模式"
+      >
+        <span class="theme-icon">🌙</span>
+      </button>
+      <button
+        class="hamburger"
+        id="hamburger"
+        type="button"
+        aria-label="打开菜单"
+        aria-expanded="false"
+      >
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<script>
+  /* 主题切换 —— 与 BaseLayout 里的防闪屏脚本共享 localStorage 键 */
+  const toggle = document.getElementById("themeToggle");
+  const icon = toggle?.querySelector(".theme-icon");
+
+  function applyTheme(theme: string) {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (icon) icon.textContent = theme === "dark" ? "☀️" : "🌙";
+    try {
+      localStorage.setItem("blog-theme", theme);
+    } catch {}
+  }
+
+  if (icon) {
+    icon.textContent =
+      document.documentElement.getAttribute("data-theme") === "dark" ? "☀️" : "🌙";
+  }
+
+  toggle?.addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme");
+    applyTheme(cur === "dark" ? "light" : "dark");
+  });
+
+  /* 移动端菜单 */
+  const hamburger = document.getElementById("hamburger");
+  const navLinks = document.getElementById("navLinks");
+  if (hamburger && navLinks) {
+    hamburger.addEventListener("click", () => {
+      const open = navLinks.classList.toggle("open");
+      hamburger.classList.toggle("open", open);
+      hamburger.setAttribute("aria-expanded", String(open));
+    });
+    navLinks.querySelectorAll("a").forEach((a) =>
+      a.addEventListener("click", () => {
+        navLinks.classList.remove("open");
+        hamburger.classList.remove("open");
+        hamburger.setAttribute("aria-expanded", "false");
+      })
+    );
+  }
+</script>

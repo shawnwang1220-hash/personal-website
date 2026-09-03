@@ -1,0 +1,102 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PostCard from "../components/PostCard.astro";
+import { SITE } from "../site.config";
+import { Content as AboutContent } from "../data/about.md";
+
+const posts = (await getCollection("posts", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const latest = posts.slice(0, 3);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Person",
+      "@id": `${SITE.url}/#person`,
+      name: SITE.author.name,
+      alternateName: SITE.author.alternateName,
+      url: SITE.url,
+      jobTitle: SITE.author.role,
+      description: SITE.author.summary,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: SITE.author.location,
+        addressCountry: "CN",
+      },
+      knowsAbout: SITE.stack,
+      sameAs: [SITE.social.github],
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE.url}/#website`,
+      url: SITE.url,
+      name: SITE.title,
+      description: SITE.description,
+      inLanguage: "zh-CN",
+      publisher: { "@id": `${SITE.url}/#person` },
+    },
+  ],
+};
+---
+
+<BaseLayout jsonLd={jsonLd}>
+  <!-- ===== 首屏 ===== -->
+  <section class="hero container" id="hero">
+    <div class="hero-card reveal">
+      <img src="/avatar.svg" alt="王天旭的头像" class="hero-avatar" />
+      <h1 class="hero-name">你好，我是 <span class="accent">王天旭</span> 👋</h1>
+      <p class="hero-role">{SITE.author.role}</p>
+      <p class="hero-tagline">{SITE.author.summary}</p>
+      <div class="hero-buttons">
+        <a class="btn btn-primary" href="/posts">阅读我的文章</a>
+        <a class="btn btn-ghost" href="/resume">查看简历</a>
+      </div>
+      <div class="hero-socials" aria-label="社交链接">
+        <a href={SITE.social.github} target="_blank" rel="noopener" title="GitHub">
+          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M12 .5C5.37.5 0 5.78 0 12.29c0 5.21 3.44 9.62 8.21 11.18.6.11.82-.26.82-.58 0-.29-.01-1.04-.02-2.05-3.34.72-4.04-1.6-4.04-1.6-.55-1.38-1.34-1.75-1.34-1.75-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.23 1.84 1.23 1.07 1.82 2.81 1.29 3.5.99.11-.77.42-1.29.76-1.59-2.67-.3-5.47-1.32-5.47-5.87 0-1.3.47-2.36 1.24-3.19-.13-.3-.54-1.52.12-3.16 0 0 1.01-.32 3.3 1.22a11.6 11.6 0 0 1 6 0c2.29-1.54 3.3-1.22 3.3-1.22.66 1.64.25 2.86.12 3.16.77.83 1.23 1.89 1.23 3.19 0 4.56-2.81 5.56-5.49 5.86.43.37.81 1.1.81 2.22 0 1.6-.01 2.89-.01 3.28 0 .32.21.7.82.58A12.01 12.01 0 0 0 24 12.29C24 5.78 18.63.5 12 .5z"/></svg>
+          GitHub
+        </a>
+        <a href="/editor" title="Markdown 编辑器">
+          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M3.9 12a3.1 3.1 0 0 1 3.1-3.1h4V7H7a5 5 0 0 0 0 10h4v-1.9H7A3.1 3.1 0 0 1 3.9 12zM8 13h8v-2H8v2zm9-6h-4v1.9h4a3.1 3.1 0 0 1 0 6.2h-4V17h4a5 5 0 0 0 0-10z"/></svg>
+          编辑器
+        </a>
+        <a href="/rss.xml" title="RSS 订阅">
+          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9h-2a7 7 0 0 0-7-7v-2zm0-7a16 16 0 0 1 16 16h-2A14 14 0 0 0 4 6V4zm0 14a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>
+          RSS
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 关于我 ===== -->
+  <section class="section container" id="about">
+    <h2 class="section-title reveal"><span class="accent">#</span> 关于我</h2>
+    <div class="about-grid">
+      <article class="card markdown-body reveal">
+        <AboutContent />
+      </article>
+      <aside class="card side-card reveal">
+        <h3>📌 速览</h3>
+        <ul class="facts">
+          {SITE.facts.map((f) => <li><strong>{f.label}：</strong>{f.value}</li>)}
+        </ul>
+        <h3>🛠️ 工具栈</h3>
+        <div class="tags">
+          {SITE.stack.map((t) => <span class="tag">{t}</span>)}
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===== 最新文章 ===== -->
+  <section class="section container" id="articles">
+    <h2 class="section-title reveal"><span class="accent">#</span> 最新文章</h2>
+    <p class="section-sub reveal">共 {posts.length} 篇 · <a href="/posts">查看全部 →</a></p>
+    <div class="post-grid">
+      {latest.map((post) => <PostCard post={post} />)}
+    </div>
+  </section>
+</BaseLayout>

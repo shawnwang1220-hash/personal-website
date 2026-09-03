@@ -1,0 +1,136 @@
+---
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE } from "../site.config";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogType?: "website" | "article";
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  noindex?: boolean;
+  bodyClass?: string;
+}
+
+const {
+  title = SITE.title,
+  description = SITE.description,
+  ogType = "website",
+  jsonLd,
+  noindex = false,
+  bodyClass = "",
+} = Astro.props;
+
+// 规范化成绝对地址，canonical 不带尾斜杠（除根路径）
+const path = Astro.url.pathname;
+const canonical = new URL(path === "/" ? "/" : path.replace(/\/$/, ""), SITE.url).href;
+
+// 页面标题：子页面追加站点名，首页直接用站点名
+const fullTitle = title === SITE.title ? SITE.title : `${title} · 王天旭`;
+
+const personLd = {
+  "@type": "Person",
+  "@id": `${SITE.url}/#person`,
+  name: SITE.author.name,
+  alternateName: SITE.author.alternateName,
+  url: SITE.url,
+  jobTitle: SITE.author.role,
+  description: SITE.author.summary,
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: SITE.author.location,
+    addressCountry: "CN",
+  },
+  sameAs: [SITE.social.github],
+};
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta name="author" content={SITE.author.name} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={SITE.title}
+      href="/rss.xml"
+    />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={SITE.title} />
+    <meta property="og:locale" content="zh_CN" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />}
+
+    {/* 深色模式：在渲染前定好主题，避免白屏闪烁 */}
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem("blog-theme");
+          if (!t) {
+            t = window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+          }
+          document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {}
+      })();
+    </script>
+
+    {
+      SITE.gtmId && (
+        <script is:inline define:vars={{ gtmId: SITE.gtmId }}>
+          (function (w, d, s, l, i) {
+            w[l] = w[l] || [];
+            w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+            var f = d.getElementsByTagName(s)[0],
+              j = d.createElement(s),
+              dl = l != "dataLayer" ? "&l=" + l : "";
+            j.async = true;
+            j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+            f.parentNode.insertBefore(j, f);
+          })(window, document, "script", "dataLayer", gtmId);
+        </script>
+      )
+    }
+  </head>
+
+  <body class={bodyClass}>
+    {
+      SITE.gtmId && (
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${SITE.gtmId}`}
+            height="0"
+            width="0"
+            style="display:none;visibility:hidden"
+          />
+        </noscript>
+      )
+    }
+
+    <Header />
+
+    <main>
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>
