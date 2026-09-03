@@ -93,13 +93,38 @@ const personLd = {
       })();
     </script>
 
-    {/* GTM 已改由 Cloudflare「Google tag gateway」在边缘注入（测量路径 /kiz4/），
-        本站不再内嵌 GTM loader，避免与网关注入的 First Party Tag 双开重复上报。
-        如需改回直连：删掉 CF 侧 GTG 配置后，恢复 site.config.ts 的 gtmId 与下方
-        GTM head/noscript 代码即可（参见 git 历史提交记录）。 */}
+    {
+      SITE.gtmId && (
+        <script is:inline define:vars={{ gtmId: SITE.gtmId }}>
+          (function (w, d, s, l, i) {
+            w[l] = w[l] || [];
+            w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+            var f = d.getElementsByTagName(s)[0],
+              j = d.createElement(s),
+              dl = l != "dataLayer" ? "&l=" + l : "";
+            j.async = true;
+            j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+            f.parentNode.insertBefore(j, f);
+          })(window, document, "script", "dataLayer", gtmId);
+        </script>
+      )
+    }
   </head>
 
   <body class={bodyClass}>
+    {
+      SITE.gtmId && (
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${SITE.gtmId}`}
+            height="0"
+            width="0"
+            style="display:none;visibility:hidden"
+          />
+        </noscript>
+      )
+    }
+
     <Header />
 
     <main>
