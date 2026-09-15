@@ -44,6 +44,30 @@ const personLd = {
   },
   sameAs: [SITE.social.github],
 };
+
+/**
+ * Google Tag Manager 官方标准嵌入代码。
+ *
+ * 用 set:html + is:inline 原样输出，而不是 define:vars —— define:vars 会自动包一层
+ * (function(){ const gtmId = "..." })()，构建产物里首行被压平，和内联脚本的排版风格不一致。
+ *
+ * 模板字符串的缩进 = 产物中 <script> 内的最终缩进（刻意写成 6 空格），开头的换行是为了
+ * 让内容不与 <script> 标签挤在同一行。调整缩进时记得同步。
+ */
+const gtmSnippet = SITE.gtmId
+  ? `
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "${SITE.gtmId}");
+    `
+  : "";
 ---
 
 <!doctype html>
@@ -102,22 +126,8 @@ const personLd = {
       })();
     </script>
 
-    {
-      SITE.gtmId && (
-        <script is:inline define:vars={{ gtmId: SITE.gtmId }}>
-          (function (w, d, s, l, i) {
-            w[l] = w[l] || [];
-            w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
-            var f = d.getElementsByTagName(s)[0],
-              j = d.createElement(s),
-              dl = l != "dataLayer" ? "&l=" + l : "";
-            j.async = true;
-            j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-            f.parentNode.insertBefore(j, f);
-          })(window, document, "script", "dataLayer", gtmId);
-        </script>
-      )
-    }
+    {/* GTM：is:inline + set:html 原样输出，产物里保持可读（详见 frontmatter 的 gtmSnippet） */}
+    {SITE.gtmId && <script is:inline set:html={gtmSnippet} />}
   </head>
 
   <body class={bodyClass}>
