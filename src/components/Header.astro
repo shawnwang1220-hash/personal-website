@@ -48,12 +48,13 @@ const isActive = (href: string) =>
   </nav>
 </header>
 
-<script>
+{/* is:inline：不让 Astro/Vite 打包压缩，构建产物里保持可读 */}
+<script is:inline>
   /* 主题切换 —— 与 BaseLayout 里的防闪屏脚本共享 localStorage 键 */
   const toggle = document.getElementById("themeToggle");
   const icon = toggle?.querySelector(".theme-icon");
 
-  function applyTheme(theme: string) {
+  function applyTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
     if (icon) icon.textContent = theme === "dark" ? "☀️" : "🌙";
     try {

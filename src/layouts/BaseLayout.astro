@@ -76,7 +76,16 @@ const personLd = {
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
 
-    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />}
+    {/* JSON-LD 用 2 空格缩进输出，构建产物里可读（对搜索引擎无影响） */}
+    {
+      jsonLd && (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(jsonLd, null, 2)}
+          is:inline
+        />
+      )
+    }
 
     {/* 深色模式：在渲染前定好主题，避免白屏闪烁 */}
     <script is:inline>

@@ -19,7 +19,8 @@ const year = new Date().getFullYear();
   ↑
 </button>
 
-<script>
+{/* is:inline：不让 Astro/Vite 打包压缩，构建产物里保持可读 */}
+<script is:inline>
   /* 返回顶部 */
   const backToTop = document.getElementById("backToTop");
   if (backToTop) {
@@ -35,7 +36,7 @@ const year = new Date().getFullYear();
    * 注意：类名必须是 .in —— global.css 里 .reveal 初始 opacity: 0，
    * 写错类名会让内容对用户永久不可见（爬虫不受影响，但用户体验崩了）。
    * 不支持 IntersectionObserver 时直接全部显示。 */
-  const revealEls = document.querySelectorAll<HTMLElement>(".reveal");
+  const revealEls = document.querySelectorAll(".reveal");
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(
       (entries) => {
