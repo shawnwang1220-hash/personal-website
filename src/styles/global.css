@@ -168,21 +168,6 @@ img { max-width: 100%; }
 .post-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 .post-tags .tag { font-size: 11px; padding: 3px 9px; }
 
-/* ---------- 编辑器 ---------- */
-.editor-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-.editor-tools { display: flex; gap: 8px; flex-wrap: wrap; }
-.editor-hint { font-size: 13px; color: var(--text-faint); }
-.editor-panes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.editor-pane { display: flex; flex-direction: column; min-width: 0; }
-.pane-label { font-size: 13px; font-weight: 600; color: var(--text-soft); margin-bottom: 8px; }
-#mdInput {
-  flex: 1; min-height: 420px; resize: vertical;
-  padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);
-  background: var(--bg-soft); color: var(--text); font-family: var(--mono); font-size: 13.5px; line-height: 1.6;
-}
-#mdInput:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.editor-preview { min-height: 420px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-soft); padding: 18px 22px; overflow: auto; }
-
 /* ---------- 阅读弹层 ---------- */
 .reader { position: fixed; inset: 0; z-index: 100; display: none; }
 .reader.open { display: block; }
@@ -277,7 +262,6 @@ img { max-width: 100%; }
   .nav-links li { padding: 10px 0; border-bottom: 1px solid var(--border); }
   .nav-links li:last-child { border-bottom: none; }
   .hamburger { display: flex; }
-  .editor-panes { grid-template-columns: 1fr; }
   .hero-card { padding: 36px 22px; }
   .reader-panel { padding: 30px 22px; }
 }
@@ -365,8 +349,6 @@ img { max-width: 100%; }
 .post-card h3 a { color: var(--text); text-decoration: none; }
 .post-card h3 a:hover { color: var(--accent); }
 .post-card { cursor: default; }
-.editor-page .editor-panes { min-height: 460px; }
-.editor-page textarea { width: 100%; height: 420px; }
 @media (max-width: 640px) {
   .post-head h1 { font-size: 24px; }
   .resume { padding: 28px 22px; }
