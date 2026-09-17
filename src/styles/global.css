@@ -321,15 +321,71 @@ img { max-width: 100%; }
 
     .resume-actions { display: flex; gap: 10px; justify-content: flex-end; margin: 18px 0 0; }
 
-    /* ===== 打印 / 导出 PDF ===== */
+    /* ===== 打印 / 导出 PDF =====
+       目标：A4 两页内排完，且不出现整页空白。
+
+       ⚠️ 不要在 .r-section 上用 break-inside: avoid ——「工作经历」这一块含 7 段经历，
+       整体高度远超一页，强制「内部不断页」只会把整块推到下一页、留出整页空白，
+       而且最终仍会被强行断开。分页控制只应作用在「单段经历 / 单条教育经历」这一级。
+
+       @page 的 margin 会取代浏览器默认页边距（默认约 10–20mm），
+       配合下面压过的字号与行距，把原来 4 页的内容收进 2 页。 */
+    @page {
+      size: A4;
+      margin: 12mm 13mm;
+    }
     @media print {
       :root { --bg: #fff; --bg-elev: #fff; --text: #1a1a1a; --text-soft: #333; --text-faint: #555; }
+
       html, body { background: #fff !important; }
-      .site-header, .resume-actions, .site-footer, .back-to-top { display: none !important; }
-      .resume-wrap { max-width: none; padding: 0; }
-      .resume { border: none; box-shadow: none; border-radius: 0; padding: 0; }
-      .job, .edu-item { break-inside: avoid; }
-      .r-section { break-inside: avoid; }
+      body { font-size: 10.5pt; line-height: 1.45; }
+
+      /* 隐藏导航 / 页脚 / 按钮等非正文元素 */
+      .site-header, .site-footer, .resume-actions, .back-to-top,
+      .reader, .hero { display: none !important; }
+
+      .resume-wrap { max-width: none; margin: 0; padding: 0; }
+      .resume { border: none; box-shadow: none; border-radius: 0; padding: 0; background: #fff; }
+
+      /* ---- 抬头 ---- */
+      .resume-header { padding-bottom: 10px; margin-bottom: 14px; }
+      .resume-name { font-size: 20pt; }
+      .resume-role { font-size: 10.5pt; margin-top: 3px; }
+      .resume-contact { font-size: 9.5pt; line-height: 1.55; }
+
+      /* ---- 区块 ---- */
+      .r-section { margin-top: 14px; }
+      .r-section:first-of-type { margin-top: 0; }
+      .r-h { font-size: 12.5pt; margin-bottom: 7px; }
+      .r-h::before { width: 4px; height: 13px; }
+      .r-summary { line-height: 1.5; }
+
+      /* ---- 工作经历 ---- */
+      .job { margin-bottom: 9px; padding-left: 10px; }
+      .job-title { font-size: 11pt; }
+      .job-date { font-size: 9pt; }
+      .job-meta { font-size: 9.5pt; margin: 1px 0 4px; }
+      .job-points { padding-left: 1em; }
+      .job-points li { margin: 2px 0; line-height: 1.45; }
+
+      /* ---- 技能 / 教育 ---- */
+      .skill-group { margin-bottom: 6px; }
+      .skill-label, .skill-items { font-size: 9.5pt; }
+      .tag { font-size: 9pt; padding: 2px 7px; }
+      .edu-item { padding: 3px 0; }
+      .edu-degree, .edu-date { font-size: 9.5pt; }
+
+      /* ---- 分页控制 ----
+         只保证「单条 bullet / 单条教育经历」不被拆开，以及标题行不孤立在页尾。
+         整段经历（.job）刻意**允许**跨页：hireEZ 那种 8 条 bullet 的长经历接近半页，
+         若对它整体 avoid，整块会被推到下一页，第一页底部就空出约 8cm。 */
+      .job-points li, .edu-item, .skill-group { break-inside: avoid; }
+      .job-head, .r-h, .resume-header { break-after: avoid; }
+      p, li { orphans: 2; widows: 2; }
+
+      /* 保留浅底标签等配色，避免打印时丢失背景 */
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
       a { text-decoration: none; color: inherit; }
     }
     @media (max-width: 640px) {
