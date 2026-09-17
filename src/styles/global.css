@@ -92,6 +92,15 @@ img { max-width: 100%; }
 }
 .theme-toggle:hover, .hamburger:hover { border-color: var(--accent); transform: translateY(-1px); }
 .theme-icon { font-size: 16px; line-height: 1; }
+/* 语言切换：与主题按钮同一套外观，因是文字标签所以横向留白更大 */
+.lang-switch {
+  height: 38px; padding: 0 12px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--bg-elev);
+  color: var(--text); display: grid; place-items: center;
+  font-size: 13px; font-weight: 600; letter-spacing: .02em;
+  transition: transform .15s, background .2s, border-color .2s;
+}
+.lang-switch:hover { border-color: var(--accent); transform: translateY(-1px); text-decoration: none; }
 .hamburger { display: none; flex-direction: column; gap: 4px; }
 .hamburger span { width: 18px; height: 2px; background: var(--text); border-radius: 2px; transition: .25s; }
 .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }

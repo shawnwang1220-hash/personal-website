@@ -3,6 +3,9 @@ import "../styles/global.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { SITE } from "../site.config";
+import { getSiteCopy } from "../i18n/ui";
+import { LANG_META, getLangFromPath, swapLangPath } from "../i18n/config";
+import type { Lang } from "../i18n/config";
 
 interface Props {
   title?: string;
@@ -11,38 +14,65 @@ interface Props {
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   noindex?: boolean;
   bodyClass?: string;
+  /** 当前页面语言；默认由 URL 自动判断（/en 前缀 → en） */
+  lang?: Lang;
+  /**
+   * 另一语言版本的路径（以 / 开头）。
+   * 默认按「英文 = /en + 中文路径」的镜像规则推导；
+   * 标签页因标签本身会被翻译，需要显式传入。
+   */
+  altPath?: string;
 }
 
 const {
-  title = SITE.title,
-  description = SITE.description,
+  title,
+  description,
   ogType = "website",
   jsonLd,
   noindex = false,
   bodyClass = "",
+  lang = getLangFromPath(Astro.url.pathname),
+  altPath,
 } = Astro.props;
 
-// 规范化成绝对地址，canonical 不带尾斜杠（除根路径）
-const path = Astro.url.pathname;
-const canonical = new URL(path === "/" ? "/" : path.replace(/\/$/, ""), SITE.url).href;
+const copy = getSiteCopy(lang);
+const meta = LANG_META[lang];
 
-// 页面标题：子页面追加站点名，首页直接用站点名
-const fullTitle = title === SITE.title ? SITE.title : `${title} · 王天旭`;
+const pageTitle = title ?? copy.title;
+const pageDescription = description ?? copy.description;
+
+// 语言前缀：中文无前缀，英文挂在 /en 下
+const langPrefix = lang === "en" ? "/en" : "";
+
+// 规范化成绝对地址，canonical / hreflang 一律不带尾斜杠（除根路径）
+const path = Astro.url.pathname;
+const stripSlash = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
+const absolute = (p: string) => new URL(stripSlash(p), SITE.url).href;
+
+const canonical = absolute(path);
+
+// 页面标题：子页面追加作者名，首页直接用站点名
+const fullTitle = pageTitle === copy.title ? copy.title : `${pageTitle} · ${copy.author.name}`;
+
+// 中英互链：当前语言用自己的路径，另一语言取 altPath 或按镜像规则推导
+const otherPath = altPath ?? swapLangPath(path);
+const pathZh = lang === "zh" ? path : otherPath;
+const pathEn = lang === "en" ? path : otherPath;
 
 const personLd = {
   "@type": "Person",
   "@id": `${SITE.url}/#person`,
-  name: SITE.author.name,
-  alternateName: SITE.author.alternateName,
+  name: copy.author.name,
+  alternateName: copy.author.alternateName,
   url: SITE.url,
-  jobTitle: SITE.author.role,
-  description: SITE.author.summary,
+  jobTitle: copy.author.role,
+  description: copy.author.summary,
   address: {
     "@type": "PostalAddress",
-    addressLocality: SITE.author.location,
+    addressLocality: copy.author.location,
     addressCountry: "CN",
   },
-  sameAs: [SITE.social.github],
+  sameAs: [copy.social.github],
 };
 
 /**
@@ -53,6 +83,9 @@ const personLd = {
  *
  * 模板字符串的缩进 = 产物中 <script> 内的最终缩进（刻意写成 6 空格），开头的换行是为了
  * 让内容不与 <script> 标签挤在同一行。调整缩进时记得同步。
+ *
+ * 中英页面共用同一段注入代码、同一容器 ID：本站的语言版本只是路由差异，
+ * 不改变 GTM 的加载时机与方式，避免引入新的变量干扰 GTM 行为排查。
  */
 const gtmSnippet = SITE.gtmId
   ? `
@@ -71,34 +104,47 @@ const gtmSnippet = SITE.gtmId
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={meta.htmlLang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>{fullTitle}</title>
-    <meta name="description" content={description} />
+    <meta name="description" content={pageDescription} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
-    <meta name="author" content={SITE.author.name} />
+    {/* 中英互链。404 之类的 noindex 页面不输出，避免给搜索引擎指路 */}
+    {
+      !noindex && (
+        <>
+          <link rel="alternate" hreflang="zh-CN" href={absolute(pathZh)} />
+          <link rel="alternate" hreflang="en" href={absolute(pathEn)} />
+          <link rel="alternate" hreflang="x-default" href={absolute(pathZh)} />
+        </>
+      )
+    }
+
+    <meta name="author" content={copy.author.name} />
+    {/* favicon 是 public 根下的静态资源，没有语言版本，不加 /en 前缀 */}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link
       rel="alternate"
       type="application/rss+xml"
-      title={SITE.title}
-      href="/rss.xml"
+      title={copy.title}
+      href={`${langPrefix}/rss.xml`}
     />
 
     <meta property="og:type" content={ogType} />
     <meta property="og:title" content={fullTitle} />
-    <meta property="og:description" content={description} />
+    <meta property="og:description" content={pageDescription} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:site_name" content={SITE.title} />
-    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:site_name" content={copy.title} />
+    <meta property="og:locale" content={meta.ogLocale} />
+    <meta property="og:locale:alternate" content={LANG_META[lang === "zh" ? "en" : "zh"].ogLocale} />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={fullTitle} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:description" content={pageDescription} />
 
     {/* JSON-LD 用 2 空格缩进输出，构建产物里可读（对搜索引擎无影响） */}
     {
@@ -144,12 +190,12 @@ const gtmSnippet = SITE.gtmId
       )
     }
 
-    <Header />
+    <Header lang={lang} altPath={altPath} />
 
     <main>
       <slot />
     </main>
 
-    <Footer />
+    <Footer lang={lang} />
   </body>
 </html>

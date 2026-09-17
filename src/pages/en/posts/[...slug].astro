@@ -1,0 +1,88 @@
+---
+import { getCollection, render } from "astro:content";
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { SITE } from "../../../site.config";
+import { getUiCopy } from "../../../i18n/ui";
+
+const lang = "en" as const;
+const t = getUiCopy(lang);
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection("postsEn", ({ data }) => !data.draft);
+  const sorted = posts.sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  );
+
+  return sorted.map((post, i) => ({
+    params: { slug: post.id },
+    props: {
+      post,
+      prev: sorted[i - 1] ?? null,
+      next: sorted[i + 1] ?? null,
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+const { post, prev, next } = Astro.props;
+const { Content } = await render(post);
+const { title, description, pubDate, updatedDate, tags } = post.data;
+
+const dateText = pubDate.toISOString().slice(0, 10);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: title,
+  description,
+  datePublished: pubDate.toISOString(),
+  dateModified: (updatedDate ?? pubDate).toISOString(),
+  inLanguage: "en",
+  keywords: tags.join(", "),
+  url: new URL(`/en/posts/${post.id}`, SITE.url).href,
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": new URL(`/en/posts/${post.id}`, SITE.url).href,
+  },
+  author: { "@id": `${SITE.url}/#person` },
+  publisher: { "@id": `${SITE.url}/#person` },
+};
+---
+
+<BaseLayout lang={lang} title={title} description={description} ogType="article" jsonLd={jsonLd}>
+  <section class="section container" style="max-width: 780px;">
+    <a class="back-link" href="/en/posts">{t.post.backLink}</a>
+
+    <article class="card reveal">
+      <header class="post-head">
+        <h1>{title}</h1>
+        <div class="post-meta">
+          <time datetime={pubDate.toISOString()}>{dateText}</time>
+          {
+            tags.length > 0 && (
+              <>
+                <span class="dot" />
+                <span class="post-tags">
+                  {tags.map((tag) => (
+                    <a class="tag" href={`/en/tags/${encodeURIComponent(tag)}`}>
+                      {tag}
+                    </a>
+                  ))}
+                </span>
+              </>
+            )
+          }
+        </div>
+      </header>
+
+      <div class="markdown-body">
+        <Content />
+      </div>
+    </article>
+
+    <nav class="post-nav">
+      {prev ? <a href={`/en/posts/${prev.id}`}>← {prev.data.title}</a> : <span />}
+      {next ? <a href={`/en/posts/${next.id}`}>{next.data.title} →</a> : <span />}
+    </nav>
+  </section>
+</BaseLayout>

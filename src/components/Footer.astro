@@ -1,21 +1,31 @@
 ---
-import { SITE } from "../site.config";
+import { getUiCopy } from "../i18n/ui";
+import { getLangFromPath } from "../i18n/config";
+import type { Lang } from "../i18n/config";
 
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = getLangFromPath(Astro.url.pathname) } = Astro.props;
+
+const t = getUiCopy(lang);
+const langPrefix = lang === "en" ? "/en" : "";
 const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
   <div class="container footer-inner">
-    <p>© {year} 王天旭 · 数字营销与 MarTech.</p>
+    <p>{t.footer.copyright(year)}</p>
     <p class="footer-sub">
-      由 <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> 构建 ·
-      内容以 Markdown 维护 ·
-      <a href="/rss.xml">RSS</a>
+      {t.footer.builtWith} <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> {t
+        .footer.builtSuffix} ·
+      <a href={`${langPrefix}/rss.xml`}>RSS</a>
     </p>
   </div>
 </footer>
 
-<button class="back-to-top" id="backToTop" type="button" aria-label="返回顶部" title="返回顶部">
+<button class="back-to-top" id="backToTop" type="button" aria-label={t.backToTop} title={t.backToTop}>
   ↑
 </button>
 

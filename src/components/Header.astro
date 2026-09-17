@@ -1,21 +1,43 @@
 ---
-import { SITE } from "../site.config";
+import { getSiteCopy, getUiCopy } from "../i18n/ui";
+import { LANG_META, getLangFromPath, swapLangPath } from "../i18n/config";
+import type { Lang } from "../i18n/config";
 
-const path = Astro.url.pathname;
+interface Props {
+  lang?: Lang;
+  /** 另一语言版本的路径；标签页需显式传入（标签本身会被翻译） */
+  altPath?: string;
+}
+
+const { lang = getLangFromPath(Astro.url.pathname), altPath } = Astro.props;
+
+const copy = getSiteCopy(lang);
+const t = getUiCopy(lang);
+const otherLang: Lang = lang === "zh" ? "en" : "zh";
+const otherMeta = LANG_META[otherLang];
+
+/** 当前语言的首页地址：中文 "/"，英文 "/en" */
+const homeHref = lang === "en" ? "/en" : "/";
+
+/** 语言切换目标地址 */
+const altHref = altPath ?? swapLangPath(Astro.url.pathname);
+
+// 去掉尾斜杠再比较，避免 /posts/ 与 /posts 被当成两个页面
+const current = Astro.url.pathname.replace(/\/$/, "") || "/";
 const isActive = (href: string) =>
-  href === "/" ? path === "/" : path.startsWith(href);
+  href === homeHref ? current === homeHref : current.startsWith(href);
 ---
 
 <header class="site-header" id="top">
   <nav class="nav container">
-    <a class="brand" href="/" aria-label="返回首页">
+    <a class="brand" href={homeHref} aria-label={t.brandAria}>
       <img src="/avatar.svg" alt="" class="brand-avatar" />
-      <span>王天旭 · Shawn</span>
+      <span>{t.brandName}</span>
     </a>
 
     <ul class="nav-links" id="navLinks">
       {
-        SITE.nav.map((item) => (
+        copy.nav.map((item) => (
           <li>
             <a href={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
               {item.label}
@@ -26,12 +48,20 @@ const isActive = (href: string) =>
     </ul>
 
     <div class="nav-actions">
+      <a
+        class="lang-switch"
+        href={altHref}
+        hreflang={otherMeta.htmlLang}
+        lang={otherMeta.htmlLang}
+        aria-label={LANG_META[lang].switchAria}
+        title={LANG_META[lang].switchAria}>{LANG_META[lang].switchShort}</a
+      >
       <button
         class="theme-toggle"
         id="themeToggle"
         type="button"
-        aria-label="切换深色 / 浅色模式"
-        title="切换深色 / 浅色模式"
+        aria-label={t.themeToggleAria}
+        title={t.themeToggleAria}
       >
         <span class="theme-icon">🌙</span>
       </button>
@@ -39,7 +69,7 @@ const isActive = (href: string) =>
         class="hamburger"
         id="hamburger"
         type="button"
-        aria-label="打开菜单"
+        aria-label={t.menuAria}
         aria-expanded="false"
       >
         <span></span><span></span><span></span>

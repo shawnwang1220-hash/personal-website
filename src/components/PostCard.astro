@@ -1,12 +1,20 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { getUiCopy } from "../i18n/ui";
+import type { Lang } from "../i18n/config";
 
 interface Props {
-  post: CollectionEntry<"posts">;
+  /** 中文字集合 posts 或英文字集合 postsEn —— 两者 schema 相同 */
+  post: CollectionEntry<"posts"> | CollectionEntry<"postsEn">;
+  /** 卡片所属语言，决定链接前缀与「阅读全文」文案；中文页面无需传 */
+  lang?: Lang;
 }
 
-const { post } = Astro.props;
+const { post, lang = "zh" } = Astro.props;
+const t = getUiCopy(lang);
 const { title, description, pubDate, tags } = post.data;
+
+const prefix = lang === "en" ? "/en" : "";
 
 // 用 ISO 日期，避免服务端与客户端时区差异导致水合不一致
 const dateText = pubDate.toISOString().slice(0, 10);
@@ -14,14 +22,20 @@ const dateAttr = pubDate.toISOString();
 ---
 
 <article class="post-card reveal">
-  <h3><a href={`/posts/${post.id}`}>{title}</a></h3>
+  <h3><a href={`${prefix}/posts/${post.id}`}>{title}</a></h3>
   <p class="excerpt">{description}</p>
   <div class="post-tags">
-    {tags.map((tag) => <a class="tag" href={`/tags/${encodeURIComponent(tag)}`}>{tag}</a>)}
+    {
+      tags.map((tag) => (
+        <a class="tag" href={`${prefix}/tags/${encodeURIComponent(tag)}`}>
+          {tag}
+        </a>
+      ))
+    }
   </div>
   <div class="post-meta">
     <time datetime={dateAttr}>{dateText}</time>
     <span class="dot"></span>
-    <span>阅读全文</span>
+    <span>{t.readMore}</span>
   </div>
 </article>

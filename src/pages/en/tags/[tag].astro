@@ -1,0 +1,52 @@
+---
+import { getCollection } from "astro:content";
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import PostCard from "../../../components/PostCard.astro";
+import { getUiCopy } from "../../../i18n/ui";
+import { translateTagToZh } from "../../../i18n/tags";
+
+const lang = "en" as const;
+const t = getUiCopy(lang);
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection("postsEn", ({ data }) => !data.draft);
+  const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+
+  return tags.map((tag) => ({
+    params: { tag },
+    props: {
+      tag,
+      posts: posts
+        .filter((p) => p.data.tags.includes(tag))
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+const { tag, posts } = Astro.props;
+
+// 标签本身是中英各写一套（如 Global Marketing ↔ 海外营销），
+// 无法用「英文 = /en + 中文路径」的镜像规则推导，必须显式给出中文页地址。
+const altPath = `/tags/${translateTagToZh(tag)}`;
+---
+
+<BaseLayout
+  lang={lang}
+  title={t.tags.pageTitle(tag)}
+  description={t.tags.pageDescription(tag, posts.length)}
+  altPath={altPath}
+>
+  <section class="section container">
+    <a class="back-link" href="/en/posts">{t.tags.backLink}</a>
+
+    <div class="tag-page-head reveal">
+      <h1 class="section-title"><span class="accent">#</span> {tag}</h1>
+      <p class="section-sub">{t.tags.count(posts.length)}</p>
+    </div>
+
+    <div class="post-grid">
+      {posts.map((post) => <PostCard post={post} lang={lang} />)}
+    </div>
+  </section>
+</BaseLayout>

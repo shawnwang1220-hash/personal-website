@@ -1,0 +1,171 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getSiteCopy } from "../../i18n/ui";
+
+const lang = "en" as const;
+const copy = getSiteCopy(lang);
+
+const description =
+  "Shawn Wang's résumé — 7 years in B2B digital marketing, focused on global demand generation systems and marketing technology.";
+
+/** 邮箱/电话从 site.config 读取；占位符（含 example.com）不生成 mailto 死链 */
+const email = copy.author.email;
+const phone = copy.author.phone;
+const phoneText = phone || "Available on request";
+---
+
+<BaseLayout lang={lang} title="Résumé" description={description} ogType="article">
+  <div class="resume-wrap">
+<div class="resume" id="resume">
+      <!-- Header: name + contact -->
+      <header class="resume-header">
+        <div>
+          <h1 class="resume-name">Shawn Wang</h1>
+          <p class="resume-role">Digital Marketing &amp; MarTech Consultant · Global B2B Demand Generation</p>
+        </div>
+        <div class="resume-contact">
+          <div class="row"><span>Phone: {phoneText}</span></div>
+          <div class="row">
+            <span
+              >Email: {
+                !email || email.includes("example.com") ? (
+                  email || "Available on request"
+                ) : (
+                  <a href={`mailto:${email}`}>{email}</a>
+                )
+              }</span
+            >
+          </div>
+          <div class="row"><span>Location: Beijing, China</span><span>Gender: Male</span><span>Degree: Master’s</span></div>
+        </div>
+      </header>
+
+      <!-- Summary -->
+      <section class="r-section">
+        <h2 class="r-h">Summary</h2>
+        <p class="r-summary">
+          7 years of B2B digital marketing experience, focused on building enterprise demand generation
+          systems and marketing operations. Experienced in continuously optimizing the marketing stack of
+          mature B2B SaaS companies, as well as building a global digital marketing system from zero for a
+          traditional enterprise. Fluent across MarTech platforms including Google Ads, Salesforce, Pardot,
+          GA4 and GTM, with a track record of independently driving end-to-end improvement across demand
+          generation, marketing automation, CRM operations and lead management.
+        </p>
+      </section>
+
+      <!-- Experience -->
+      <section class="r-section">
+        <h2 class="r-h">Experience</h2>
+
+        <div class="job">
+          <div class="job-head">
+            <span class="job-title">Independent Digital Marketing &amp; MarTech Consultant</span>
+            <span class="job-date">Oct 2025 - Present</span>
+          </div>
+          <ul class="job-points">
+            <li>Hands-on work with digital marketing data technologies including server-side tagging, GTM and GA4: built and debugged web and server-side data pipelines, and validated event tracking, conversion feedback and attribution designs.</li>
+            <li>Built personal workflows on AI and automation tools such as Dify and Notion, extracting unstructured information from web pages and documents and converting it into structured, reusable data processes.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-head">
+            <span class="job-title">Bonree Data</span>
+            <span class="job-date">Jan 2025 - Sep 2025</span>
+          </div>
+          <div class="job-meta">Overseas Digital Marketing ｜ Computer Software</div>
+          <ul class="job-points">
+            <li>Joined at the zero-to-one stage of the company's global business; owned demand generation and marketing technology build-out to support the overseas market launch.</li>
+            <li><strong>0→1 global digital marketing build:</strong> Independently planned and shipped the website, ad platforms, marketing stack and lead management process, establishing a complete demand generation foundation for the overseas business.</li>
+            <li><strong>Marketing stack:</strong> Independently deployed and implemented Google Ads, LinkedIn Ads, GA4, GTM, Zoho Forms and ShareCRM, connecting marketing tracking, lead capture and the underlying data flow.</li>
+            <li><strong>Marketing automation &amp; CRM:</strong> Designed the global lead management process, building form automation, email notifications, data sync and lead routing mechanisms to improve lead handoff efficiency.</li>
+            <li><strong>Global brand &amp; operations:</strong> Ran the global website, LinkedIn company page and PR distribution, steadily improving brand visibility and digital operations capability.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-head">
+            <span class="job-title">hireEZ</span>
+            <span class="job-date">May 2021 - Jul 2024</span>
+          </div>
+          <div class="job-meta">Sr. Marketing Operations ｜ IT Services</div>
+          <ul class="job-points">
+            <li>Global B2B AI recruiting SaaS company; owned marketing operations for North America and global markets, supporting demand generation, marketing systems and sales alignment.</li>
+            <li><strong>Demand generation:</strong> Managed global marketing channels including Google Ads and LinkedIn Ads, closed the loop between advertising and CRM sales data, driving a 3.87× increase in Google Ads ROAS and contributing to 2.5× ARR growth.</li>
+            <li><strong>Marketing data &amp; tracking:</strong> Led the Universal Analytics to GA4 migration, defining website events, ad attribution and marketing data collection standards to safeguard data accuracy (GTM, GA4).</li>
+            <li><strong>Marketing automation:</strong> Designed marketing automation and lead nurture flows, establishing lead nurturing, customer segmentation and automated outreach mechanisms to steadily improve marketing–sales efficiency (Pardot).</li>
+            <li><strong>CRM operations:</strong> Continuously optimized lead management, covering core objects such as Lead, Contact, Campaign and Opportunity to support marketing–sales collaboration and business operations.</li>
+            <li><strong>ABM &amp; systems orchestration:</strong> Contributed to the 6sense ABM platform rollout, building target account tiers based on ICP, buying stage and marketing behaviour, and orchestrating ad platforms, CRM and marketing automation for precise targeting.</li>
+            <li><strong>Marketing analytics:</strong> Built the marketing analytics framework, continuously monitoring acquisition, lead conversion and sales funnel performance to support marketing optimization and leadership decisions (GA4, Salesforce, CRMA).</li>
+            <li><strong>Marketing systems:</strong> Drove cross-system orchestration across Google Ads, GA4, Salesforce, Pardot, 6sense and CRMA, continuously improving the marketing technology stack that supports global marketing operations.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-head"><span class="job-title">Youbi Technology</span><span class="job-date">Mar 2021 - May 2021</span></div>
+          <div class="job-meta">Global Paid Media Manager ｜ IT Services</div>
+        </div>
+        <div class="job">
+          <div class="job-head"><span class="job-title">Haishi Interactive</span><span class="job-date">May 2020 - Mar 2021</span></div>
+          <div class="job-meta">Global Channel Optimization Specialist</div>
+        </div>
+        <div class="job">
+          <div class="job-head"><span class="job-title">Xinhuilian Technology</span><span class="job-date">Feb 2019 - Jan 2020</span></div>
+          <div class="job-meta">Optimization Specialist ｜ IT Services</div>
+        </div>
+        <div class="job">
+          <div class="job-head"><span class="job-title">Chengde Lolo</span><span class="job-date">Nov 2017 - Oct 2018</span></div>
+          <div class="job-meta">New Media Specialist ｜ FMCG</div>
+        </div>
+        <div class="job">
+          <div class="job-head"><span class="job-title">Beijing Denong</span><span class="job-date">May 2017 - Nov 2017</span></div>
+          <div class="job-meta">Research Assistant</div>
+        </div>
+      </section>
+
+      <!-- Skills -->
+      <section class="r-section" id="skills">
+        <h2 class="r-h">Skills</h2>
+        <div class="skill-group">
+          <span class="skill-label">Focus areas</span>
+          <span class="skill-items">Marketing Operations ｜ Marketing Systems ｜ Marketing Automation ｜ CRM</span>
+        </div>
+        <div class="skill-group">
+          <span class="skill-label">Platforms</span>
+          <div class="tags">
+            <span class="tag">Google Ads</span><span class="tag">LinkedIn Ads</span><span class="tag">GA4</span>
+            <span class="tag">Google Tag Manager</span><span class="tag">Salesforce</span><span class="tag">Pardot</span>
+            <span class="tag">6sense</span><span class="tag">Zoho</span><span class="tag">ShareCRM</span>
+          </div>
+        </div>
+        <div class="skill-group">
+          <span class="skill-label">Data &amp; analytics</span>
+          <span class="skill-items">Lead Management ｜ Marketing Analytics ｜ SQL ｜ Looker Studio ｜ CRMA</span>
+        </div>
+      </section>
+
+      <!-- Education -->
+      <section class="r-section" id="contact">
+        <h2 class="r-h">Education</h2>
+        <div class="edu-item">
+          <span><span class="edu-name">University of Nottingham</span> <span class="edu-degree">Agronomy · M.Sc.</span></span>
+          <span class="edu-date">Sep 2015 - Dec 2016</span>
+        </div>
+        <div class="edu-item">
+          <span><span class="edu-name">China Agricultural University</span> <span class="edu-degree">Agronomy · B.Sc.</span></span>
+          <span class="edu-date">Sep 2011 - Jul 2015</span>
+        </div>
+      </section>
+
+      <div class="resume-actions">
+        <button class="btn btn-primary" id="printBtn" type="button">Download / Print PDF</button>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+{/* is:inline：不让 Astro/Vite 打包压缩，构建产物里保持可读 */}
+<script is:inline>
+  /* 打印 / 导出 PDF —— 用浏览器原生打印，不引入额外依赖 */
+  document.getElementById("printBtn")?.addEventListener("click", () => window.print());
+</script>
