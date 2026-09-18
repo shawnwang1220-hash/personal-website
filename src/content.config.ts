@@ -12,6 +12,11 @@ const postSchema = z.object({
   updatedDate: z.coerce.date().optional(),
   tags: z.array(z.string()).default([]),
   /**
+   * 内容管线给出的长尾关键词。只用于 JSON-LD 的 keywords，不参与站内标签聚合
+   * （标签是导航维度，关键词是检索维度，两者不要混用）。
+   */
+  keywords: z.array(z.string()).default([]),
+  /**
    * 文章专属社交分享图：public 下的路径（如 /og/ai-agent-wechat.png，1200×630）。
    * 留空则回落到站点默认图（site.config.ts 的 ogImage）。
    *
