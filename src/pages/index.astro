@@ -10,39 +10,10 @@ const posts = (await getCollection("posts", ({ data }) => !data.draft))
 
 const latest = posts.slice(0, 3);
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Person",
-      "@id": `${SITE.url}/#person`,
-      name: SITE.author.name,
-      alternateName: SITE.author.alternateName,
-      url: SITE.url,
-      jobTitle: SITE.author.role,
-      description: SITE.author.summary,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: SITE.author.location,
-        addressCountry: "CN",
-      },
-      knowsAbout: SITE.stack,
-      sameAs: [SITE.social.github],
-    },
-    {
-      "@type": "WebSite",
-      "@id": `${SITE.url}/#website`,
-      url: SITE.url,
-      name: SITE.title,
-      description: SITE.description,
-      inLanguage: "zh-CN",
-      publisher: { "@id": `${SITE.url}/#person` },
-    },
-  ],
-};
+// Person / WebSite 节点由 BaseLayout 统一注入，首页不再自行声明（避免两份真源）
 ---
 
-<BaseLayout jsonLd={jsonLd}>
+<BaseLayout>
   <!-- ===== 首屏 ===== -->
   <section class="hero container" id="hero">
     <div class="hero-card reveal">
@@ -51,8 +22,8 @@ const jsonLd = {
       <p class="hero-role">{SITE.author.role}</p>
       <p class="hero-tagline">{SITE.author.summary}</p>
       <div class="hero-buttons">
-        <a class="btn btn-primary" href="/posts">阅读我的文章</a>
-        <a class="btn btn-ghost" href="/resume">查看简历</a>
+        <a class="btn btn-primary" href="/posts/">阅读我的文章</a>
+        <a class="btn btn-ghost" href="/resume/">查看简历</a>
       </div>
       <div class="hero-socials" aria-label="社交链接">
         <a href={SITE.social.github} target="_blank" rel="noopener" title="GitHub">
@@ -90,7 +61,7 @@ const jsonLd = {
   <!-- ===== 最新文章 ===== -->
   <section class="section container" id="articles">
     <h2 class="section-title reveal"><span class="accent">#</span> 最新文章</h2>
-    <p class="section-sub reveal">共 {posts.length} 篇 · <a href="/posts">查看全部 →</a></p>
+    <p class="section-sub reveal">共 {posts.length} 篇 · <a href="/posts/">查看全部 →</a></p>
     <div class="post-grid">
       {latest.map((post) => <PostCard post={post} />)}
     </div>

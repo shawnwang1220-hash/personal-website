@@ -1,6 +1,8 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { SITE } from "../../site.config";
 import { getSiteCopy } from "../../i18n/ui";
+import { withTrailingSlash } from "../../i18n/config";
 
 const lang = "en" as const;
 const copy = getSiteCopy(lang);
@@ -12,9 +14,55 @@ const description =
 const email = copy.author.email;
 const phone = copy.author.phone;
 const phoneText = phone || "Available on request";
+
+const resumeUrl = new URL(withTrailingSlash("/en/resume/"), SITE.url).href;
+
+/** 占位邮箱不写进结构化数据，避免对外输出一个无效联系地址 */
+const schemaEmail =
+  email && !email.includes("example.com") ? `mailto:${email}` : undefined;
+
+/**
+ * 简历页的结构化数据。与中文简历页同构，仅语言相关的字段取值不同。
+ *
+ * ProfilePage 把「这个 URL 是某人的资料页」显式表达出来；Person 节点与
+ * BaseLayout 注入的精简版同 @id，布局会**按字段合并** —— 所以这里只声明简历页
+ * 独有的字段（email / hasOccupation / alumniOf），不重抄 name、jobTitle、
+ * sameAs、knowsAbout。
+ *
+ * 刻意不塞工作经历：schema.org 对历史任职没有简洁准确的表达（worksFor 的语义是
+ * 「目前为之工作」），而简历正文本身已经是清晰的分节列表。
+ */
+const PERSON_ID = `${SITE.url}/#person`;
+const jsonLd = [
+  {
+    "@type": "ProfilePage",
+    "@id": `${resumeUrl}#profilepage`,
+    url: resumeUrl,
+    name: "Shawn Wang's Résumé",
+    description,
+    inLanguage: "en",
+    isPartOf: { "@id": `${SITE.url}/#website` },
+    about: { "@id": PERSON_ID },
+    mainEntity: { "@id": PERSON_ID },
+  },
+  {
+    "@type": "Person",
+    "@id": PERSON_ID,
+    ...(schemaEmail ? { email: schemaEmail } : {}),
+    hasOccupation: {
+      "@type": "Occupation",
+      name: copy.author.role,
+      occupationLocation: { "@type": "Country", name: "China" },
+    },
+    alumniOf: [
+      { "@type": "CollegeOrUniversity", name: "University of Nottingham" },
+      { "@type": "CollegeOrUniversity", name: "China Agricultural University" },
+    ],
+  },
+];
 ---
 
-<BaseLayout lang={lang} title="Résumé" description={description} ogType="article">
+<BaseLayout lang={lang} title="Résumé" description={description} ogType="article" jsonLd={jsonLd}>
   <div class="resume-wrap">
 <div class="resume" id="resume">
       <!-- Header: name + contact -->

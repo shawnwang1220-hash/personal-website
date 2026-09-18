@@ -4,8 +4,10 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { SITE } from "../site.config";
 import { getSiteCopy } from "../i18n/ui";
-import { LANG_META, getLangFromPath, swapLangPath } from "../i18n/config";
+import { LANG_META, getLangFromPath, swapLangPath, withTrailingSlash } from "../i18n/config";
 import type { Lang } from "../i18n/config";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
 interface Props {
   title?: string;
@@ -22,6 +24,13 @@ interface Props {
    * 标签页因标签本身会被翻译，需要显式传入。
    */
   altPath?: string;
+  /**
+   * 社交分享图：public 下的路径（如 /og/xxx.png）或完整外链 URL。
+   * 缺省 → 当前语言的站点默认图 SITE.ogImage。
+   */
+  image?: string;
+  /** 分享图的替代文本；缺省用本页完整标题 */
+  imageAlt?: string;
 }
 
 const {
@@ -33,6 +42,8 @@ const {
   bodyClass = "",
   lang = getLangFromPath(Astro.url.pathname),
   altPath,
+  image,
+  imageAlt,
 } = Astro.props;
 
 const copy = getSiteCopy(lang);
@@ -41,13 +52,33 @@ const meta = LANG_META[lang];
 const pageTitle = title ?? copy.title;
 const pageDescription = description ?? copy.description;
 
+/**
+ * 社交分享图：og:image / twitter:image 共用一个来源。
+ * 此前全站没有 og:image，链接在 LinkedIn / X / 微信里只能展开成一张无图的干链接，
+ * 对 B2B 分享传播是直接的损耗。
+ */
+const ogImagePath = image ?? SITE.ogImage[lang];
+const ogImageUrl = new URL(ogImagePath, SITE.url).href;
+const ogImageAlt = imageAlt ?? pageTitle;
+
+/**
+ * 自托管图片做一次存在性检查：路径写错时页面一切正常、只有分享卡片裂图，
+ * 线上几乎发现不了。构建期告警把问题挡在发布之前。
+ * 外链与协议相对地址（//cdn…）不检查。
+ */
+if (ogImagePath.startsWith("/") && !ogImagePath.startsWith("//")) {
+  if (!existsSync(join(process.cwd(), "public", ogImagePath.slice(1)))) {
+    console.warn(`[og] public${ogImagePath} 不存在（来源页面 ${Astro.url.pathname}）`);
+  }
+}
+
 // 语言前缀：中文无前缀，英文挂在 /en 下
 const langPrefix = lang === "en" ? "/en" : "";
 
-// 规范化成绝对地址，canonical / hreflang 一律不带尾斜杠（除根路径）
+// canonical / hreflang 一律指向「最终地址」——带尾斜杠，与 sitemap 保持一致。
+// 无斜杠的地址会被 Cloudflare Pages 308 到带斜杠版本，指向它等于指向重定向目标。
 const path = Astro.url.pathname;
-const stripSlash = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
-const absolute = (p: string) => new URL(stripSlash(p), SITE.url).href;
+const absolute = (p: string) => new URL(withTrailingSlash(p), SITE.url).href;
 
 const canonical = absolute(path);
 
@@ -59,9 +90,12 @@ const otherPath = altPath ?? swapLangPath(path);
 const pathZh = lang === "zh" ? path : otherPath;
 const pathEn = lang === "en" ? path : otherPath;
 
+const PERSON_ID = `${SITE.url}/#person`;
+const WEBSITE_ID = `${SITE.url}/#website`;
+
 const personLd = {
   "@type": "Person",
-  "@id": `${SITE.url}/#person`,
+  "@id": PERSON_ID,
   name: copy.author.name,
   alternateName: copy.author.alternateName,
   url: SITE.url,
@@ -72,7 +106,82 @@ const personLd = {
     addressLocality: copy.author.location,
     addressCountry: "CN",
   },
-  sameAs: [copy.social.github],
+  knowsAbout: copy.stack,
+  // 取 site.config 里登记的全部社交主页。sameAs 是实体消歧的主要依据 ——
+  // 少一个地址就少一条「这些主页是同一个人」的证据，所以不做单点引用。
+  sameAs: Object.values(copy.social),
+};
+
+const webSiteLd = {
+  "@type": "WebSite",
+  "@id": WEBSITE_ID,
+  url: SITE.url,
+  name: copy.title,
+  description: copy.description,
+  inLanguage: meta.htmlLang,
+  publisher: { "@id": PERSON_ID },
+};
+
+/**
+ * JSON-LD 由本布局统一出口。
+ *
+ * 关键点：@id 只能在「同一份图」内解析 —— 搜索引擎按页面独立处理 JSON-LD，
+ * 不会跨页面去找 `${SITE.url}/#person`。所以 Person / WebSite 这两个全站共用
+ * 的节点必须出现在每个引用了它们的页面里，否则文章页的 author / publisher 就是
+ * 「有 @id、无节点」的悬空引用，作者与发布者信息整段失效。
+ *
+ * 因此：Person + WebSite 固定占据 @graph 前两位，页面只传「本页专属」的节点
+ * （BlogPosting、ItemList…）。三种入参都接受：单节点、节点数组、或已带 @graph
+ * 的对象。@context 一律由本布局接管，避免出现嵌套上下文；页面若想给 Person /
+ * WebSite 补充字段（如简历页的 alumniOf），传一个同 @id 的节点即可 —— 字段会
+ * 合并进布局版本，不需要重抄 name / jobTitle / sameAs。
+ */
+const pageNodes: Record<string, unknown>[] = !jsonLd
+  ? []
+  : Array.isArray(jsonLd)
+    ? jsonLd
+    : Array.isArray(jsonLd["@graph"])
+      ? (jsonLd["@graph"] as Record<string, unknown>[])
+      : [jsonLd];
+
+const nodeId = (n: Record<string, unknown>) =>
+  typeof n["@id"] === "string" ? (n["@id"] as string) : undefined;
+
+const overrides = new Map<string, Record<string, unknown>>();
+for (const n of pageNodes) {
+  const id = nodeId(n);
+  if (id) overrides.set(id, n);
+}
+
+/** 剥掉节点上残留的 @context，避免与外层冲突 */
+const withoutContext = (n: Record<string, unknown>) => {
+  if (!("@context" in n)) return n;
+  const rest = { ...n };
+  delete rest["@context"];
+  return rest;
+};
+
+/**
+ * 同 @id 的节点按字段合并，页面字段优先。
+ *
+ * 为什么是合并而不是整体替换：@id 相同即代表「同一个实体」，消费者本来就会把
+ * 同名节点的属性合并起来理解。若在这里整体替换，页面想补一个 hasOccupation /
+ * alumniOf，就得把 name、jobTitle、sameAs、knowsAbout 全部重抄一遍 —— 那正是
+ * P0-D 要消除的「两份真源」。合并语义下，页面只声明它独有的字段。
+ */
+const mergeNode = (base: Record<string, unknown>, over?: Record<string, unknown>) =>
+  over ? { ...base, ...over } : base;
+
+const jsonLdGraph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    mergeNode(personLd, overrides.get(PERSON_ID)),
+    mergeNode(webSiteLd, overrides.get(WEBSITE_ID)),
+    ...pageNodes.filter((n) => {
+      const id = nodeId(n);
+      return id !== PERSON_ID && id !== WEBSITE_ID;
+    }),
+  ].map(withoutContext),
 };
 
 /**
@@ -319,20 +428,36 @@ const gtmSnippet = SITE.gtmId
     <meta property="og:site_name" content={copy.title} />
     <meta property="og:locale" content={meta.ogLocale} />
     <meta property="og:locale:alternate" content={LANG_META[lang === "zh" ? "en" : "zh"].ogLocale} />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content={fullTitle} />
-    <meta name="twitter:description" content={pageDescription} />
 
-    {/* JSON-LD 用 2 空格缩进输出，构建产物里可读（对搜索引擎无影响） */}
+    {/* 分享图。宽高只在用站点默认图时声明 —— 那是我们自己产出的、尺寸确定；
+        文章自定义 cover 不声明，避免写错尺寸后平台按错误比例裁剪。
+        同理不输出 og:image:type：cover 可能是 png/jpg/webp，平台会自行嗅探，
+        写死反而会写错。 */}
+    <meta property="og:image" content={ogImageUrl} />
     {
-      jsonLd && (
-        <script
-          type="application/ld+json"
-          set:html={JSON.stringify(jsonLd, null, 2)}
-          is:inline
-        />
+      !image && (
+        <>
+          <meta property="og:image:width" content={String(SITE.ogImageSize.width)} />
+          <meta property="og:image:height" content={String(SITE.ogImageSize.height)} />
+        </>
       )
     }
+    <meta property="og:image:alt" content={ogImageAlt} />
+
+    {/* summary_large_image：有图才配得上大卡，summary 只出小方图 */}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+
+    {/* JSON-LD：Person + WebSite 由布局统一注入，页面节点追加在同一 @graph 内。
+        2 空格缩进输出，构建产物里可读（对搜索引擎无影响）。 */}
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(jsonLdGraph, null, 2)}
+      is:inline
+    />
 
     {/* 深色模式：在渲染前定好主题，避免白屏闪烁 */}
     <script is:inline>

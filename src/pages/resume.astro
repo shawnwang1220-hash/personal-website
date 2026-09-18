@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { SITE } from "../site.config";
+import { withTrailingSlash } from "../i18n/config";
 
 const description =
   "王天旭的在线简历 —— 7 年 B2B 数字营销经验，专注海外数字化获客体系与 Marketing Technology 建设。";
@@ -9,9 +10,56 @@ const description =
 const email = SITE.author.email;
 const phone = SITE.author.phone;
 const phoneText = phone || "电话待补充";
+
+const resumeUrl = new URL(withTrailingSlash("/resume/"), SITE.url).href;
+
+/** 占位邮箱不写进结构化数据，避免对外输出一个无效联系地址 */
+const schemaEmail =
+  email && !email.includes("example.com") ? `mailto:${email}` : undefined;
+
+/**
+ * 简历页的结构化数据。
+ *
+ * ProfilePage 把「这个 URL 是某人的资料页」显式表达出来；Person 节点与
+ * BaseLayout 注入的精简版同 @id，布局会**按字段合并** —— 所以这里只声明简历页
+ * 独有的字段（email / hasOccupation / alumniOf），不重抄 name、jobTitle、
+ * sameAs、knowsAbout。
+ *
+ * 刻意不塞工作经历：schema.org 对「历史任职」没有简洁准确的表达（worksFor 的
+ * 语义是「目前为之工作」，拿它列历史雇主等于给出错误事实），而简历正文本身是
+ * H2 分节 + 列表，对抓取已经足够清楚。结构化数据只补正文表达不了的实体信息。
+ */
+const PERSON_ID = `${SITE.url}/#person`;
+const jsonLd = [
+  {
+    "@type": "ProfilePage",
+    "@id": `${resumeUrl}#profilepage`,
+    url: resumeUrl,
+    name: "王天旭的个人简历",
+    description,
+    inLanguage: "zh-CN",
+    isPartOf: { "@id": `${SITE.url}/#website` },
+    about: { "@id": PERSON_ID },
+    mainEntity: { "@id": PERSON_ID },
+  },
+  {
+    "@type": "Person",
+    "@id": PERSON_ID,
+    ...(schemaEmail ? { email: schemaEmail } : {}),
+    hasOccupation: {
+      "@type": "Occupation",
+      name: SITE.author.role,
+      occupationLocation: { "@type": "Country", name: "中国" },
+    },
+    alumniOf: [
+      { "@type": "CollegeOrUniversity", name: "英国诺丁汉大学" },
+      { "@type": "CollegeOrUniversity", name: "中国农业大学" },
+    ],
+  },
+];
 ---
 
-<BaseLayout title="个人简历" description={description} ogType="article">
+<BaseLayout title="个人简历" description={description} ogType="article" jsonLd={jsonLd}>
   <div class="resume-wrap">
 <div class="resume" id="resume">
       <!-- 头部：姓名 + 联系方式 -->

@@ -29,9 +29,32 @@ export const SITE = {
     phone: "",
   },
 
+  /**
+   * 社交主页。BaseLayout 会把这里的每个地址自动纳入 JSON-LD 的 Person.sameAs ——
+   * sameAs 是搜索引擎与 AI 判断「这些主页背后是同一个人」的主要依据，缺一个
+   * 就少一条实体消歧的线索。新增账号只需在这里加一条，无需改布局。
+   */
   social: {
     github: "https://github.com/shawnwang1220-hash",
+    linkedin: "https://www.linkedin.com/in/tianxu-wang/",
   },
+
+  /**
+   * 默认社交分享图（1200×630 PNG，放 public/ 下）。
+   *
+   * 中英各一张：卡片上印的是姓名与方向，另一种语言的页面用中文卡片
+   * （或反过来）会让分享出去的第一印象就是错的。
+   * 单篇文章可用 frontmatter 的 cover 覆盖。
+   *
+   * 模板在 scripts/og-card.html，改动后用本机 Chrome 无头截图重新生成。
+   */
+  ogImage: {
+    zh: "/og-default.png",
+    en: "/og-default-en.png",
+  },
+
+  /** 分享图尺寸，供 og:image:width / height —— 平台首次抓取时按此比例裁剪，缺失易被裁错 */
+  ogImageSize: { width: 1200, height: 630 },
 
   /** Google Tag Manager 容器 ID，留空则不注入 GTM */
   gtmId: "GTM-WL55WFH8",
@@ -62,7 +85,7 @@ export const SITE = {
 
   nav: [
     { label: "首页", href: "/" },
-    { label: "文章", href: "/posts" },
-    { label: "简历", href: "/resume" },
+    { label: "文章", href: "/posts/" },
+    { label: "简历", href: "/resume/" },
   ],
 } as const;

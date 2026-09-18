@@ -3,15 +3,37 @@ import { getCollection } from "astro:content";
 import type { GetStaticPaths } from "astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PostCard from "../../components/PostCard.astro";
+import { translateTagToEn } from "../../i18n/tags";
 
 export const getStaticPaths = (async () => {
-  const posts = await getCollection("posts", ({ data }) => !data.draft);
+  const [posts, enPosts] = await Promise.all([
+    getCollection("posts", ({ data }) => !data.draft),
+    getCollection("postsEn", ({ data }) => !data.draft),
+  ]);
   const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+
+  // 标签页是「按语料里实际出现的标签」生成的，中英两边的集合未必一一对应。
+  // 若某个中文标签在英文站没有对应页面，hreflang 与语言切换都会指向 404。
+  // 这里在构建期把这种不对称暴露出来（只告警、不中断构建，允许先发中文后补英文）。
+  const enTags = new Set(enPosts.flatMap((p) => p.data.tags));
+  for (const tag of tags) {
+    const enTag = translateTagToEn(tag);
+    if (!enTags.has(enTag)) {
+      console.warn(
+        `[i18n] 标签「${tag}」在英文站缺少对应页面（推导出的英文标签：${enTag}）。` +
+          `请给英文文章补上该标签，或在 src/i18n/tags.ts 登记正确的中英映射 —— ` +
+          `否则 /tags/${tag}/ 的 hreflang 与语言切换会指向 404。`
+      );
+    }
+  }
 
   return tags.map((tag) => ({
     params: { tag },
     props: {
       tag,
+      // 标签本身会被翻译（如 获客体系 ↔ Demand Generation），
+      // 无法用「英文 = /en + 中文路径」的镜像规则推导，必须显式给出英文页地址。
+      altPath: `/en/tags/${translateTagToEn(tag)}`,
       posts: posts
         .filter((p) => p.data.tags.includes(tag))
         .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
@@ -19,15 +41,16 @@ export const getStaticPaths = (async () => {
   }));
 }) satisfies GetStaticPaths;
 
-const { tag, posts } = Astro.props;
+const { tag, posts, altPath } = Astro.props;
 ---
 
 <BaseLayout
   title={`标签：${tag}`}
   description={`与「${tag}」相关的全部文章，共 ${posts.length} 篇。`}
+  altPath={altPath}
 >
   <section class="section container">
-    <a class="back-link" href="/posts">← 返回文章列表</a>
+    <a class="back-link" href="/posts/">← 返回文章列表</a>
 
     <div class="tag-page-head reveal">
       <h1 class="section-title"><span class="accent">#</span> {tag}</h1>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <title>OG 分享卡模板</title>
+    <!--
+      默认社交分享图（1200×630）的模板。产物是 public/og-default.png（中文）与
+      public/og-default-en.png（英文），已提交进仓库 —— 平时不需要重新生成。
+
+      改完本文件后，用本机 Chrome 无头截图重新生成（无需任何额外依赖）：
+
+        CHROME="/c/Program Files/Google/Chrome/Application/chrome.exe"
+        "$CHROME" --headless=new --disable-gpu --hide-scrollbars --no-first-run \
+          --no-default-browser-check --force-device-scale-factor=1 \
+          --user-data-dir="$(mktemp -d)" --window-size=1200,630 --virtual-time-budget=3000 \
+          --screenshot="C:/.../public/og-default.png"    "file:///C:/.../scripts/og-card.html?lang=zh"
+        "$CHROME" --headless=new ... \
+          --screenshot="C:/.../public/og-default-en.png" "file:///C:/.../scripts/og-card.html?lang=en"
+
+      用 --user-data-dir 指向临时目录，避免复用本机正在运行的 Chrome 配置。
+      ?lang= 由本文件末尾的同步脚本读取，两种语言共用这一个模板。
+
+      尺寸与颜色刻意与站点一致（--bg / --accent 取自 src/styles/global.css 的深色主题）。
+    -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+      }
+      body {
+        position: relative;
+        background: #0f1218;
+        color: #e7ebf2;
+        font-family: "Segoe UI", "Microsoft YaHei", -apple-system, Roboto, "Helvetica Neue",
+          Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* 两处柔光：右上偏冷（accent），左下偏深（accent 的低饱和版） */
+      .glow {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(760px 440px at 88% -8%, rgba(129, 140, 248, 0.32), transparent 62%),
+          radial-gradient(600px 400px at -6% 108%, rgba(79, 70, 229, 0.26), transparent 60%);
+      }
+
+      /* 极淡的网格，避免大面积纯色显得空 */
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+        background-size: 60px 60px;
+      }
+
+      .wrap {
+        position: relative;
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+        padding: 72px 88px 80px;
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .dot {
+        width: 15px;
+        height: 15px;
+        border-radius: 5px;
+        background: #818cf8;
+        box-shadow: 0 0 26px rgba(129, 140, 248, 0.9);
+      }
+      .domain {
+        font-family: Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 25px;
+        letter-spacing: 0.06em;
+        color: #7b8494;
+      }
+
+      .name {
+        margin-top: auto;
+        font-size: 106px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+      }
+      .role {
+        margin-top: 20px;
+        font-size: 40px;
+        font-weight: 600;
+        color: #818cf8;
+      }
+      .meta {
+        margin-top: 16px;
+        font-size: 25px;
+        color: #aab3c2;
+      }
+      .bar {
+        margin-top: 46px;
+        width: 184px;
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #818cf8, #4f46e5);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glow"></div>
+    <div class="grid"></div>
+    <div class="wrap">
+      <div class="top">
+        <span class="dot"></span>
+        <span class="domain">blog.tianxu.uk</span>
+      </div>
+      <div class="name" id="name">王天旭</div>
+      <div class="role" id="role">数字营销 &amp; MarTech</div>
+      <div class="meta" id="meta">海外 B2B 获客 · GA4 数据追踪 · 营销自动化</div>
+      <div class="bar"></div>
+    </div>
+
+    <!-- 同步执行，截图前一定已生效；?lang=en 时替换为英文文案 -->
+    <script>
+      (function () {
+        var isEn = /[?&]lang=en\b/.test(location.search);
+        if (!isEn) return;
+        document.documentElement.lang = "en";
+        document.getElementById("name").textContent = "Shawn Wang";
+        document.getElementById("role").textContent = "Digital Marketing & MarTech";
+        document.getElementById("meta").textContent =
+          "Global B2B Demand Generation · GA4 · Marketing Automation";
+      })();
+    </script>
+  </body>
+</html>

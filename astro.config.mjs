@@ -30,7 +30,12 @@ export default defineConfig({
     }),
   ],
 
-  // 输出 /posts/xxx/index.html 形式，Cloudflare Pages 可直接以 /posts/xxx 访问
+  // 页面 URL 一律带尾斜杠 —— 与 Cloudflare Pages 的实际行为对齐。
+  // Pages 会把 /posts/xxx（无斜杠）308 跳到 /posts/xxx/；
+  // 若 canonical / hreflang 仍输出无斜杠地址，等于指向重定向目标，hreflang 会被引擎忽略。
+  trailingSlash: "always",
+
+  // 输出 /posts/xxx/index.html 形式，Cloudflare Pages 可直接以 /posts/xxx/ 访问
   build: {
     format: "directory",
   },

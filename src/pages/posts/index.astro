@@ -28,7 +28,7 @@ const allTags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
       allTags.length > 0 && (
         <div class="tags reveal" style="margin-bottom: 28px;">
           {allTags.map((t) => (
-            <a class="tag" href={`/tags/${encodeURIComponent(t)}`}>{t}</a>
+            <a class="tag" href={`/tags/${encodeURIComponent(t)}/`}>{t}</a>
           ))}
         </div>
       )

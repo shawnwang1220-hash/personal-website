@@ -22,12 +22,12 @@ const dateAttr = pubDate.toISOString();
 ---
 
 <article class="post-card reveal">
-  <h3><a href={`${prefix}/posts/${post.id}`}>{title}</a></h3>
+  <h3><a href={`${prefix}/posts/${post.id}/`}>{title}</a></h3>
   <p class="excerpt">{description}</p>
   <div class="post-tags">
     {
       tags.map((tag) => (
-        <a class="tag" href={`${prefix}/tags/${encodeURIComponent(tag)}`}>
+        <a class="tag" href={`${prefix}/tags/${encodeURIComponent(tag)}/`}>
           {tag}
         </a>
       ))

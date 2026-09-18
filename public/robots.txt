@@ -1,5 +1,130 @@
+# ══════════════════════════════════════════════════════════════════════════
+#  blog.tianxu.uk — robots.txt
+#
+#  策略：欢迎检索与引用，不授权训练。
+#
+#  自动化访问者分三类，区别对待：
+#    检索型     允许。它们决定内容能否出现在 AI 回答里，并带回来源链接。
+#    用户触发型 允许。用户当场让 AI 读某个页面时的即时抓取。
+#    训练型     禁止。只喂模型权重，不产生任何引用回流。
+#
+#  前提：robots.txt 是「声明偏好」，不是访问控制。对不遵守声明的爬虫
+#  （Bytespider 有明确的不遵守记录）需要在 CDN 或源站层拦截。
+# ══════════════════════════════════════════════════════════════════════════
+
 User-agent: *
 Allow: /
 
-# Astro sitemap 集成生成的是 sitemap-index.xml
+# ── 内容用途声明（Cloudflare Content Signals）────────────────────────────
+# 与上面的 User-agent: * 段配套，表达「可用于检索、不可用于训练」。
+#
+#   search=yes     允许建立搜索索引、返回链接与短摘要
+#   ai-input=yes   允许在生成回答时读取内容（RAG / grounding），会带回引用
+#   ai-train=no    不授权用于训练或微调模型
+#   use=reference  可索引、可摘录、可引用；不可复述或整体再现
+#
+# 法律意义：欧盟《数字化单一市场版权指令》(2019/790) 第 4 条允许权利人
+# 以机器可读方式保留文本与数据挖掘权。本声明即为该保留。
+# 已知副作用：Google Search Console 可能把 Content-Signal 报为「语法无法
+# 识别」——Cloudflare 官方说明这不影响抓取率与 SEO。
+Content-Signal: search=yes, ai-input=yes, ai-train=no, use=reference
+
 Sitemap: https://blog.tianxu.uk/sitemap-index.xml
+
+# ── 检索型：显式允许 ─────────────────────────────────────────────────────
+# 这几支决定内容能否被 AI 回答引用。禁止它们等于放弃 GEO 的全部收益。
+#
+# Googlebot 与 Bingbot 同时喂搜索与 AI 摘要（Googlebot → AI Overviews，
+# Bingbot → Copilot），共享同一个索引，绝不能禁止。
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+# ── 用户触发型：显式允许 ─────────────────────────────────────────────────
+# 用户主动让 AI 读这一页时的即时抓取。禁止会让「帮我总结这个链接」直接失败。
+#
+# 注：ChatGPT-User 与 Perplexity-User 按各自官方文档「可能不遵守 / 通常忽略」
+# robots.txt —— 这里写上是为了表态，不指望它们一定照办。
+# Claude-User 与 DuckAssistBot 明确遵守。
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: meta-externalfetcher
+Allow: /
+
+# ── 训练型：显式禁止 ─────────────────────────────────────────────────────
+# 只喂模型权重、不带引用回流。禁止它们不损失任何 AI 搜索可见性。
+#
+# Google-Extended 与 Applebot-Extended 不是独立的爬虫，而是 robots.txt 里的
+# 用途开关：分别控制内容能否用于训练 Gemini / Vertex 与 Apple Intelligence。
+# 禁止它们不影响 Google Search 排名，也不影响 Applebot 的检索。
+#
+# 取舍说明：禁止 Google-Extended 的代价是失去 Gemini 应用里的 grounding 引用，
+# 但 AI Overviews 走的是 Googlebot（不受此项影响），而训练授权不可逆。
+# 若更看重 Gemini 引用而非训练保护，删掉这一段的 Google-Extended 即可。
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+# 数据转售型：抓取后打包卖给模型训练方，同样无引用回流
+User-agent: Diffbot
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: AI2Bot
+Disallow: /
+
+# ── 机器可读的内容目录 ───────────────────────────────────────────────────
+# 面向 AI 的内容索引（站点结构、文章清单、引用偏好）：
+#   https://blog.tianxu.uk/llms.txt

@@ -77,7 +77,24 @@ export function swapLangPath(path: string): string {
   return localizePath(path, current === "zh" ? "en" : "zh");
 }
 
-/** 带语言前缀的内部链接：zh 返回 "/posts"，en 返回 "/en/posts" */
+/** 带语言前缀的内部链接：zh 返回 "/posts/"，en 返回 "/en/posts/" */
 export function localeUrl(path: string, lang: Lang): string {
-  return localizePath(path, lang);
+  return withTrailingSlash(localizePath(path, lang));
+}
+
+/**
+ * 页面 URL 一律以 "/" 结尾。
+ *
+ * 依据：build.format 为 "directory"，产物是 <route>/index.html，Cloudflare Pages
+ * 会把不带斜杠的 <route> 308 到 <route>/。因此 canonical / hreflang / 站内链接
+ * 都必须直接指向带斜杠的最终地址（200），否则：
+ *   - canonical 指向重定向目标，规范化信号被浪费；
+ *   - hreflang 目标不是 200，整组互译关系被搜索引擎忽略。
+ *
+ * 带扩展名的文件路由（/rss.xml、/favicon.svg）原样返回，不加斜杠。
+ */
+export function withTrailingSlash(path: string): string {
+  if (path.endsWith("/")) return path;
+  if (/\.[a-z0-9]+$/i.test(path)) return path;
+  return `${path}/`;
 }
