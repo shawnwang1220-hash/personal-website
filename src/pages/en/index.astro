@@ -59,8 +59,8 @@ const jsonLd = {
       <p class="hero-role">{copy.author.role}</p>
       <p class="hero-tagline">{copy.author.summary}</p>
       <div class="hero-buttons">
-        <a class="btn btn-primary" href="/en/posts">{t.home.ctaPosts}</a>
-        <a class="btn btn-ghost" href="/en/resume">{t.home.ctaResume}</a>
+        <a class="btn btn-primary" href="/en/posts/">{t.home.ctaPosts}</a>
+        <a class="btn btn-ghost" href="/en/resume/">{t.home.ctaResume}</a>
       </div>
       <div class="hero-socials" aria-label={t.home.socialsAria}>
         <a href={copy.social.github} target="_blank" rel="noopener" title="GitHub">
@@ -99,7 +99,7 @@ const jsonLd = {
   <section class="section container" id="articles">
     <h2 class="section-title reveal"><span class="accent">#</span> {t.home.latestHeading}</h2>
     <p class="section-sub reveal">
-      {t.home.postCount(posts.length)} · <a href="/en/posts">{t.home.viewAll}</a>
+      {t.home.postCount(posts.length)} · <a href="/en/posts/">{t.home.viewAll}</a>
     </p>
     <div class="post-grid">
       {latest.map((post) => <PostCard post={post} lang={lang} />)}

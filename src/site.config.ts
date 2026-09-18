@@ -62,7 +62,7 @@ export const SITE = {
 
   nav: [
     { label: "首页", href: "/" },
-    { label: "文章", href: "/posts" },
-    { label: "简历", href: "/resume" },
+    { label: "文章", href: "/posts/" },
+    { label: "简历", href: "/resume/" },
   ],
 } as const;

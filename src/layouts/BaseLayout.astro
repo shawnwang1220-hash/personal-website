@@ -4,7 +4,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { SITE } from "../site.config";
 import { getSiteCopy } from "../i18n/ui";
-import { LANG_META, getLangFromPath, swapLangPath } from "../i18n/config";
+import { LANG_META, getLangFromPath, swapLangPath, withTrailingSlash } from "../i18n/config";
 import type { Lang } from "../i18n/config";
 
 interface Props {
@@ -44,10 +44,10 @@ const pageDescription = description ?? copy.description;
 // 语言前缀：中文无前缀，英文挂在 /en 下
 const langPrefix = lang === "en" ? "/en" : "";
 
-// 规范化成绝对地址，canonical / hreflang 一律不带尾斜杠（除根路径）
+// canonical / hreflang 一律指向「最终地址」——带尾斜杠，与 sitemap 保持一致。
+// 无斜杠的地址会被 Cloudflare Pages 308 到带斜杠版本，指向它等于指向重定向目标。
 const path = Astro.url.pathname;
-const stripSlash = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
-const absolute = (p: string) => new URL(stripSlash(p), SITE.url).href;
+const absolute = (p: string) => new URL(withTrailingSlash(p), SITE.url).href;
 
 const canonical = absolute(path);
 

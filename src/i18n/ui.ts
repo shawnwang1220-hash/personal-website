@@ -76,9 +76,9 @@ const SITE_COPY_EN: SiteCopy = {
     { label: "Interests", value: "Global growth · Data-driven · Automation" },
   ],
   nav: [
-    { label: "Home", href: "/en" },
-    { label: "Writing", href: "/en/posts" },
-    { label: "Résumé", href: "/en/resume" },
+    { label: "Home", href: "/en/" },
+    { label: "Writing", href: "/en/posts/" },
+    { label: "Résumé", href: "/en/resume/" },
   ],
 };
 

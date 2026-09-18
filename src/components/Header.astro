@@ -1,6 +1,6 @@
 ---
 import { getSiteCopy, getUiCopy } from "../i18n/ui";
-import { LANG_META, getLangFromPath, swapLangPath } from "../i18n/config";
+import { LANG_META, getLangFromPath, swapLangPath, withTrailingSlash } from "../i18n/config";
 import type { Lang } from "../i18n/config";
 
 interface Props {
@@ -16,16 +16,20 @@ const t = getUiCopy(lang);
 const otherLang: Lang = lang === "zh" ? "en" : "zh";
 const otherMeta = LANG_META[otherLang];
 
-/** 当前语言的首页地址：中文 "/"，英文 "/en" */
-const homeHref = lang === "en" ? "/en" : "/";
+/** 当前语言的首页地址：中文 "/"，英文 "/en/" */
+const homeHref = withTrailingSlash(lang === "en" ? "/en" : "/");
 
 /** 语言切换目标地址 */
-const altHref = altPath ?? swapLangPath(Astro.url.pathname);
+const altHref = withTrailingSlash(altPath ?? swapLangPath(Astro.url.pathname));
 
-// 去掉尾斜杠再比较，避免 /posts/ 与 /posts 被当成两个页面
-const current = Astro.url.pathname.replace(/\/$/, "") || "/";
-const isActive = (href: string) =>
-  href === homeHref ? current === homeHref : current.startsWith(href);
+// 两边都归一化（去掉尾斜杠）再比较，避免 /posts/ 与 /posts 被当成两个页面
+const bare = (p: string) => p.replace(/\/+$/, "") || "/";
+const current = bare(Astro.url.pathname);
+const homeBare = bare(homeHref);
+const isActive = (href: string) => {
+  const h = bare(href);
+  return h === homeBare ? current === h : current === h || current.startsWith(`${h}/`);
+};
 ---
 
 <header class="site-header" id="top">
