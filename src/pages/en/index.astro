@@ -2,7 +2,6 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import PostCard from "../../components/PostCard.astro";
-import { SITE } from "../../site.config";
 import { getSiteCopy, getUiCopy } from "../../i18n/ui";
 import { Content as AboutContent } from "../../data/about.en.md";
 
@@ -16,39 +15,10 @@ const posts = (await getCollection("postsEn", ({ data }) => !data.draft)).sort(
 
 const latest = posts.slice(0, 3);
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Person",
-      "@id": `${SITE.url}/#person`,
-      name: copy.author.name,
-      alternateName: copy.author.alternateName,
-      url: SITE.url,
-      jobTitle: copy.author.role,
-      description: copy.author.summary,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: copy.author.location,
-        addressCountry: "CN",
-      },
-      knowsAbout: copy.stack,
-      sameAs: [copy.social.github],
-    },
-    {
-      "@type": "WebSite",
-      "@id": `${SITE.url}/#website`,
-      url: SITE.url,
-      name: copy.title,
-      description: copy.description,
-      inLanguage: "en",
-      publisher: { "@id": `${SITE.url}/#person` },
-    },
-  ],
-};
+// Person / WebSite 节点由 BaseLayout 统一注入，首页不再自行声明（避免两份真源）
 ---
 
-<BaseLayout lang={lang} jsonLd={jsonLd}>
+<BaseLayout lang={lang}>
   <!-- ===== Hero ===== -->
   <section class="hero container" id="hero">
     <div class="hero-card reveal">

@@ -3,6 +3,7 @@ import { getCollection, render } from "astro:content";
 import type { GetStaticPaths } from "astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { SITE } from "../../../site.config";
+import { withTrailingSlash } from "../../../i18n/config";
 import { getUiCopy } from "../../../i18n/ui";
 
 const lang = "en" as const;
@@ -30,8 +31,15 @@ const { title, description, pubDate, updatedDate, tags } = post.data;
 
 const dateText = pubDate.toISOString().slice(0, 10);
 
+// 与 canonical 保持一致：指向带尾斜杠的最终地址，而不是会被 308 的地址
+const postUrl = new URL(withTrailingSlash(`/en/posts/${post.id}`), SITE.url).href;
+
+/**
+ * 本页专属节点。author / publisher 引用的 #person 由 BaseLayout 注入到同一份
+ * @graph 内 —— @id 不能跨页面解析，本页没有对应节点就会变成「有引用、无定义」
+ * 的悬空引用，作者与发布者信息整段失效。
+ */
 const jsonLd = {
-  "@context": "https://schema.org",
   "@type": "BlogPosting",
   headline: title,
   description,
@@ -39,11 +47,8 @@ const jsonLd = {
   dateModified: (updatedDate ?? pubDate).toISOString(),
   inLanguage: "en",
   keywords: tags.join(", "),
-  url: new URL(`/en/posts/${post.id}`, SITE.url).href,
-  mainEntityOfPage: {
-    "@type": "WebPage",
-    "@id": new URL(`/en/posts/${post.id}`, SITE.url).href,
-  },
+  url: postUrl,
+  mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
   author: { "@id": `${SITE.url}/#person` },
   publisher: { "@id": `${SITE.url}/#person` },
 };

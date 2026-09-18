@@ -10,39 +10,10 @@ const posts = (await getCollection("posts", ({ data }) => !data.draft))
 
 const latest = posts.slice(0, 3);
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Person",
-      "@id": `${SITE.url}/#person`,
-      name: SITE.author.name,
-      alternateName: SITE.author.alternateName,
-      url: SITE.url,
-      jobTitle: SITE.author.role,
-      description: SITE.author.summary,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: SITE.author.location,
-        addressCountry: "CN",
-      },
-      knowsAbout: SITE.stack,
-      sameAs: [SITE.social.github],
-    },
-    {
-      "@type": "WebSite",
-      "@id": `${SITE.url}/#website`,
-      url: SITE.url,
-      name: SITE.title,
-      description: SITE.description,
-      inLanguage: "zh-CN",
-      publisher: { "@id": `${SITE.url}/#person` },
-    },
-  ],
-};
+// Person / WebSite 节点由 BaseLayout 统一注入，首页不再自行声明（避免两份真源）
 ---
 
-<BaseLayout jsonLd={jsonLd}>
+<BaseLayout>
   <!-- ===== 首屏 ===== -->
   <section class="hero container" id="hero">
     <div class="hero-card reveal">

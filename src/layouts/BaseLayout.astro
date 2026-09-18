@@ -59,9 +59,12 @@ const otherPath = altPath ?? swapLangPath(path);
 const pathZh = lang === "zh" ? path : otherPath;
 const pathEn = lang === "en" ? path : otherPath;
 
+const PERSON_ID = `${SITE.url}/#person`;
+const WEBSITE_ID = `${SITE.url}/#website`;
+
 const personLd = {
   "@type": "Person",
-  "@id": `${SITE.url}/#person`,
+  "@id": PERSON_ID,
   name: copy.author.name,
   alternateName: copy.author.alternateName,
   url: SITE.url,
@@ -72,7 +75,68 @@ const personLd = {
     addressLocality: copy.author.location,
     addressCountry: "CN",
   },
+  knowsAbout: copy.stack,
   sameAs: [copy.social.github],
+};
+
+const webSiteLd = {
+  "@type": "WebSite",
+  "@id": WEBSITE_ID,
+  url: SITE.url,
+  name: copy.title,
+  description: copy.description,
+  inLanguage: meta.htmlLang,
+  publisher: { "@id": PERSON_ID },
+};
+
+/**
+ * JSON-LD 由本布局统一出口。
+ *
+ * 关键点：@id 只能在「同一份图」内解析 —— 搜索引擎按页面独立处理 JSON-LD，
+ * 不会跨页面去找 `${SITE.url}/#person`。所以 Person / WebSite 这两个全站共用
+ * 的节点必须出现在每个引用了它们的页面里，否则文章页的 author / publisher 就是
+ * 「有 @id、无节点」的悬空引用，作者与发布者信息整段失效。
+ *
+ * 因此：Person + WebSite 固定占据 @graph 前两位，页面只传「本页专属」的节点
+ * （BlogPosting、ItemList…）。三种入参都接受：单节点、节点数组、或已带 @graph
+ * 的对象。@context 一律由本布局接管，避免出现嵌套上下文；页面若自行定义了
+ * 同 @id 的节点，以页面传入的为准。
+ */
+const pageNodes: Record<string, unknown>[] = !jsonLd
+  ? []
+  : Array.isArray(jsonLd)
+    ? jsonLd
+    : Array.isArray(jsonLd["@graph"])
+      ? (jsonLd["@graph"] as Record<string, unknown>[])
+      : [jsonLd];
+
+const nodeId = (n: Record<string, unknown>) =>
+  typeof n["@id"] === "string" ? (n["@id"] as string) : undefined;
+
+const overrides = new Map<string, Record<string, unknown>>();
+for (const n of pageNodes) {
+  const id = nodeId(n);
+  if (id) overrides.set(id, n);
+}
+
+/** 剥掉节点上残留的 @context，避免与外层冲突 */
+const withoutContext = (n: Record<string, unknown>) => {
+  if (!("@context" in n)) return n;
+  const rest = { ...n };
+  delete rest["@context"];
+  return rest;
+};
+
+const jsonLdGraph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    overrides.get(PERSON_ID) ?? personLd,
+    overrides.get(WEBSITE_ID) ?? webSiteLd,
+    ...pageNodes.filter((n) => {
+      const id = nodeId(n);
+      return id !== PERSON_ID && id !== WEBSITE_ID;
+    }),
+  ].map(withoutContext),
 };
 
 /**
@@ -323,16 +387,13 @@ const gtmSnippet = SITE.gtmId
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={pageDescription} />
 
-    {/* JSON-LD 用 2 空格缩进输出，构建产物里可读（对搜索引擎无影响） */}
-    {
-      jsonLd && (
-        <script
-          type="application/ld+json"
-          set:html={JSON.stringify(jsonLd, null, 2)}
-          is:inline
-        />
-      )
-    }
+    {/* JSON-LD：Person + WebSite 由布局统一注入，页面节点追加在同一 @graph 内。
+        2 空格缩进输出，构建产物里可读（对搜索引擎无影响）。 */}
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(jsonLdGraph, null, 2)}
+      is:inline
+    />
 
     {/* 深色模式：在渲染前定好主题，避免白屏闪烁 */}
     <script is:inline>
