@@ -24,7 +24,11 @@ Thumbs.db
 blog-template/
 .wrangler/
 .workbuddy/
-*.png
+# 只忽略仓库根目录下的散落图片，不要写成裸 *.png ——
+# 那会把 public/ 下的站点图片资源一起吞掉，而且是静默的：
+# 本地检查一切正常，构建产物里却没有这个文件，线上分享图直接裂图。
+# 文章封面图同样走 public/，必须能被提交。
+/*.png
 extract_resume.py
 render_resume.py
 gh_api_push.py

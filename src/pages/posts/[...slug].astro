@@ -23,12 +23,17 @@ export const getStaticPaths = (async () => {
 
 const { post, prev, next } = Astro.props;
 const { Content } = await render(post);
-const { title, description, pubDate, updatedDate, tags } = post.data;
+const { title, description, pubDate, updatedDate, tags, cover, coverAlt } = post.data;
 
 const dateText = pubDate.toISOString().slice(0, 10);
 
 // 与 canonical 保持一致：指向带尾斜杠的最终地址，而不是会被 308 的地址
 const postUrl = new URL(withTrailingSlash(`/posts/${post.id}`), SITE.url).href;
+
+// 分享图：文章没给 cover 就回落到站点默认图。
+// 取值规则与 BaseLayout 内的 ogImagePath 一致 —— 两边必须同源，否则
+// og:image 与 JSON-LD 的 image 会指向两张不同的图。
+const ogImageUrl = new URL(cover ?? SITE.ogImage.zh, SITE.url).href;
 
 /**
  * 本页专属节点。author / publisher 引用的 #person 由 BaseLayout 注入到同一份
@@ -45,6 +50,7 @@ const jsonLd = {
   keywords: tags.join(", "),
   url: postUrl,
   mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+  image: ogImageUrl,
   author: { "@id": `${SITE.url}/#person` },
   publisher: { "@id": `${SITE.url}/#person` },
 };
@@ -55,6 +61,8 @@ const jsonLd = {
   description={description}
   ogType="article"
   jsonLd={jsonLd}
+  image={cover}
+  imageAlt={coverAlt}
 >
   <section class="section container" style="max-width: 780px;">
     <a class="back-link" href="/posts/">← 返回文章列表</a>

@@ -11,6 +11,17 @@ const postSchema = z.object({
   pubDate: z.coerce.date(),
   updatedDate: z.coerce.date().optional(),
   tags: z.array(z.string()).default([]),
+  /**
+   * 文章专属社交分享图：public 下的路径（如 /og/ai-agent-wechat.png，1200×630）。
+   * 留空则回落到站点默认图（site.config.ts 的 ogImage）。
+   *
+   * 用普通字符串而不是 Astro 的 image() 助手：图片由内容管线产出并直接放进
+   * public/，不走 Astro 的资源管线，构建期不做二次裁剪压缩。
+   * 代价是路径写错不会构建失败 —— 由构建后的 SEO 校验脚本兜底。
+   */
+  cover: z.string().optional(),
+  /** 分享图的替代文本，输出为 og:image:alt / twitter:image:alt */
+  coverAlt: z.string().optional(),
   draft: z.boolean().default(false),
 });
 

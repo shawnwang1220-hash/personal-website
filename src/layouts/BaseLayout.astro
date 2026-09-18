@@ -6,6 +6,8 @@ import { SITE } from "../site.config";
 import { getSiteCopy } from "../i18n/ui";
 import { LANG_META, getLangFromPath, swapLangPath, withTrailingSlash } from "../i18n/config";
 import type { Lang } from "../i18n/config";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
 interface Props {
   title?: string;
@@ -22,6 +24,13 @@ interface Props {
    * 标签页因标签本身会被翻译，需要显式传入。
    */
   altPath?: string;
+  /**
+   * 社交分享图：public 下的路径（如 /og/xxx.png）或完整外链 URL。
+   * 缺省 → 当前语言的站点默认图 SITE.ogImage。
+   */
+  image?: string;
+  /** 分享图的替代文本；缺省用本页完整标题 */
+  imageAlt?: string;
 }
 
 const {
@@ -33,6 +42,8 @@ const {
   bodyClass = "",
   lang = getLangFromPath(Astro.url.pathname),
   altPath,
+  image,
+  imageAlt,
 } = Astro.props;
 
 const copy = getSiteCopy(lang);
@@ -40,6 +51,26 @@ const meta = LANG_META[lang];
 
 const pageTitle = title ?? copy.title;
 const pageDescription = description ?? copy.description;
+
+/**
+ * 社交分享图：og:image / twitter:image 共用一个来源。
+ * 此前全站没有 og:image，链接在 LinkedIn / X / 微信里只能展开成一张无图的干链接，
+ * 对 B2B 分享传播是直接的损耗。
+ */
+const ogImagePath = image ?? SITE.ogImage[lang];
+const ogImageUrl = new URL(ogImagePath, SITE.url).href;
+const ogImageAlt = imageAlt ?? pageTitle;
+
+/**
+ * 自托管图片做一次存在性检查：路径写错时页面一切正常、只有分享卡片裂图，
+ * 线上几乎发现不了。构建期告警把问题挡在发布之前。
+ * 外链与协议相对地址（//cdn…）不检查。
+ */
+if (ogImagePath.startsWith("/") && !ogImagePath.startsWith("//")) {
+  if (!existsSync(join(process.cwd(), "public", ogImagePath.slice(1)))) {
+    console.warn(`[og] public${ogImagePath} 不存在（来源页面 ${Astro.url.pathname}）`);
+  }
+}
 
 // 语言前缀：中文无前缀，英文挂在 /en 下
 const langPrefix = lang === "en" ? "/en" : "";
@@ -383,9 +414,28 @@ const gtmSnippet = SITE.gtmId
     <meta property="og:site_name" content={copy.title} />
     <meta property="og:locale" content={meta.ogLocale} />
     <meta property="og:locale:alternate" content={LANG_META[lang === "zh" ? "en" : "zh"].ogLocale} />
-    <meta name="twitter:card" content="summary" />
+
+    {/* 分享图。宽高只在用站点默认图时声明 —— 那是我们自己产出的、尺寸确定；
+        文章自定义 cover 不声明，避免写错尺寸后平台按错误比例裁剪。
+        同理不输出 og:image:type：cover 可能是 png/jpg/webp，平台会自行嗅探，
+        写死反而会写错。 */}
+    <meta property="og:image" content={ogImageUrl} />
+    {
+      !image && (
+        <>
+          <meta property="og:image:width" content={String(SITE.ogImageSize.width)} />
+          <meta property="og:image:height" content={String(SITE.ogImageSize.height)} />
+        </>
+      )
+    }
+    <meta property="og:image:alt" content={ogImageAlt} />
+
+    {/* summary_large_image：有图才配得上大卡，summary 只出小方图 */}
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
     {/* JSON-LD：Person + WebSite 由布局统一注入，页面节点追加在同一 @graph 内。
         2 空格缩进输出，构建产物里可读（对搜索引擎无影响）。 */}

@@ -33,6 +33,23 @@ export const SITE = {
     github: "https://github.com/shawnwang1220-hash",
   },
 
+  /**
+   * 默认社交分享图（1200×630 PNG，放 public/ 下）。
+   *
+   * 中英各一张：卡片上印的是姓名与方向，另一种语言的页面用中文卡片
+   * （或反过来）会让分享出去的第一印象就是错的。
+   * 单篇文章可用 frontmatter 的 cover 覆盖。
+   *
+   * 模板在 scripts/og-card.html，改动后用本机 Chrome 无头截图重新生成。
+   */
+  ogImage: {
+    zh: "/og-default.png",
+    en: "/og-default-en.png",
+  },
+
+  /** 分享图尺寸，供 og:image:width / height —— 平台首次抓取时按此比例裁剪，缺失易被裁错 */
+  ogImageSize: { width: 1200, height: 630 },
+
   /** Google Tag Manager 容器 ID，留空则不注入 GTM */
   gtmId: "GTM-WL55WFH8",
 
