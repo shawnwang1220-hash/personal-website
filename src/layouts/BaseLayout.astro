@@ -107,7 +107,9 @@ const personLd = {
     addressCountry: "CN",
   },
   knowsAbout: copy.stack,
-  sameAs: [copy.social.github],
+  // 取 site.config 里登记的全部社交主页。sameAs 是实体消歧的主要依据 ——
+  // 少一个地址就少一条「这些主页是同一个人」的证据，所以不做单点引用。
+  sameAs: Object.values(copy.social),
 };
 
 const webSiteLd = {
@@ -130,8 +132,9 @@ const webSiteLd = {
  *
  * 因此：Person + WebSite 固定占据 @graph 前两位，页面只传「本页专属」的节点
  * （BlogPosting、ItemList…）。三种入参都接受：单节点、节点数组、或已带 @graph
- * 的对象。@context 一律由本布局接管，避免出现嵌套上下文；页面若自行定义了
- * 同 @id 的节点，以页面传入的为准。
+ * 的对象。@context 一律由本布局接管，避免出现嵌套上下文；页面若想给 Person /
+ * WebSite 补充字段（如简历页的 alumniOf），传一个同 @id 的节点即可 —— 字段会
+ * 合并进布局版本，不需要重抄 name / jobTitle / sameAs。
  */
 const pageNodes: Record<string, unknown>[] = !jsonLd
   ? []
@@ -158,11 +161,22 @@ const withoutContext = (n: Record<string, unknown>) => {
   return rest;
 };
 
+/**
+ * 同 @id 的节点按字段合并，页面字段优先。
+ *
+ * 为什么是合并而不是整体替换：@id 相同即代表「同一个实体」，消费者本来就会把
+ * 同名节点的属性合并起来理解。若在这里整体替换，页面想补一个 hasOccupation /
+ * alumniOf，就得把 name、jobTitle、sameAs、knowsAbout 全部重抄一遍 —— 那正是
+ * P0-D 要消除的「两份真源」。合并语义下，页面只声明它独有的字段。
+ */
+const mergeNode = (base: Record<string, unknown>, over?: Record<string, unknown>) =>
+  over ? { ...base, ...over } : base;
+
 const jsonLdGraph = {
   "@context": "https://schema.org",
   "@graph": [
-    overrides.get(PERSON_ID) ?? personLd,
-    overrides.get(WEBSITE_ID) ?? webSiteLd,
+    mergeNode(personLd, overrides.get(PERSON_ID)),
+    mergeNode(webSiteLd, overrides.get(WEBSITE_ID)),
     ...pageNodes.filter((n) => {
       const id = nodeId(n);
       return id !== PERSON_ID && id !== WEBSITE_ID;

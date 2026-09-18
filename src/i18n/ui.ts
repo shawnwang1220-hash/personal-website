@@ -24,7 +24,8 @@ export interface SiteCopy {
     email: string;
     phone: string;
   };
-  social: { github: string };
+  /** 与 SITE.social 同构；新增社交账号时这里与 site.config.ts 需同步 */
+  social: { github: string; linkedin: string };
   stack: readonly string[];
   facts: readonly { label: string; value: string }[];
   nav: readonly { label: string; href: string }[];

@@ -29,8 +29,14 @@ export const SITE = {
     phone: "",
   },
 
+  /**
+   * 社交主页。BaseLayout 会把这里的每个地址自动纳入 JSON-LD 的 Person.sameAs ——
+   * sameAs 是搜索引擎与 AI 判断「这些主页背后是同一个人」的主要依据，缺一个
+   * 就少一条实体消歧的线索。新增账号只需在这里加一条，无需改布局。
+   */
   social: {
     github: "https://github.com/shawnwang1220-hash",
+    linkedin: "https://www.linkedin.com/in/tianxu-wang/",
   },
 
   /**
