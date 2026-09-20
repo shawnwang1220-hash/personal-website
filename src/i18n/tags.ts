@@ -16,6 +16,8 @@ export const TAG_ZH_TO_EN: Record<string, string> = {
   海外营销: "Global Marketing",
   获客体系: "Demand Generation",
   营销自动化: "Marketing Automation",
+  "公众号 API": "WeChat API",
+  自动化: "Automation",
 };
 
 /** 英文标签 → 中文标签（由上表反转生成，保证双向一致） */

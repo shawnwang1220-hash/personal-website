@@ -27,7 +27,7 @@ export const getStaticPaths = (async () => {
 
 const { post, prev, next } = Astro.props;
 const { Content } = await render(post);
-const { title, description, pubDate, updatedDate, tags, cover, coverAlt } = post.data;
+const { title, description, pubDate, updatedDate, tags, keywords, cover, coverAlt } = post.data;
 
 const dateText = pubDate.toISOString().slice(0, 10);
 
@@ -51,7 +51,8 @@ const jsonLd = {
   datePublished: pubDate.toISOString(),
   dateModified: (updatedDate ?? pubDate).toISOString(),
   inLanguage: "en",
-  keywords: tags.join(", "),
+  // keywords 是检索维度、tags 是导航维度，两者都进这个字段，合并时去重
+  keywords: [...new Set([...keywords, ...tags])].join(", "),
   url: postUrl,
   mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
   image: ogImageUrl,
