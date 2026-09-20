@@ -1,0 +1,40 @@
+---
+import { SITE } from "../site.config";
+import { SOCIAL_META } from "../data/social";
+import type { Lang } from "../i18n/config";
+
+interface Props {
+  /** 展示哪几个。省略 = 全部；传入时**数组顺序即渲染顺序** */
+  only?: (keyof typeof SITE.social)[];
+  /** 无障碍标签里的人名，中英各用各的写法 */
+  person: string;
+  lang: Lang;
+  /** 是否在链接文本里附「在新窗口打开」的屏幕阅读器提示 */
+  externalHint?: boolean;
+}
+
+const { only, person, lang, externalHint = true } = Astro.props;
+
+const externalText = lang === "en" ? "(opens in a new tab)" : "（在新窗口打开）";
+
+/** 不传 only 时按 SOCIAL_META 的键序；传了 only 就尊重调用方的顺序 */
+const keys = (only ?? (Object.keys(SOCIAL_META) as (keyof typeof SITE.social)[])) as (
+  | keyof typeof SITE.social
+)[];
+
+const entries = keys
+  .map((key) => ({ key, meta: SOCIAL_META[key], href: SITE.social[key] }))
+  .filter((e) => e.meta && Boolean(e.href));
+---
+
+{
+  entries.map(({ key, meta, href }) => (
+    <a href={href} target="_blank" rel="noopener" title={meta.aria(person)} data-social={key}>
+      <svg viewBox="0 0 24 24" class="ic" aria-hidden="true">
+        <path d={meta.icon} />
+      </svg>
+      {meta.label}
+      {externalHint && <span class="sr-only">{externalText}</span>}
+    </a>
+  ))
+}
