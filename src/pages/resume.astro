@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import SocialLinks from "../components/SocialLinks.astro";
 import { SITE } from "../site.config";
 import { withTrailingSlash } from "../i18n/config";
 
@@ -82,6 +83,9 @@ const jsonLd = [
             >
           </div>
           <div class="row"><span>所在地：北京</span><span>性别：男</span><span>学历：硕士</span></div>
+          <div class="row resume-socials">
+            <SocialLinks only={["linkedin", "github"]} person={SITE.author.name} lang="zh" externalHint={false} />
+          </div>
         </div>
       </header>
 

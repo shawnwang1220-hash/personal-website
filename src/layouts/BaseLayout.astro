@@ -80,6 +80,16 @@ const langPrefix = lang === "en" ? "/en" : "";
 const path = Astro.url.pathname;
 const absolute = (p: string) => new URL(withTrailingSlash(p), SITE.url).href;
 
+/**
+ * 站点根地址的**规范形态** —— 带尾斜杠，与首页 canonical / sitemap / RSS 一致。
+ *
+ * 不能把 `SITE.url` 直接当成根地址输出：它是**拼接原料**而不是最终地址 ——
+ * 既做 `new URL(..., SITE.url)` 的 base，也被 `${SITE.url}/#person` 这样拼接。
+ * 给它加尾斜杠会让 `#person` 拼成 `//#person`，全站 @id 一起坏掉。
+ * 所以要输出「站点根」这个概念时，另立常量，走 absolute() 与页面 URL 同一套归一化。
+ */
+const SITE_ROOT = absolute("/");
+
 const canonical = absolute(path);
 
 // 页面标题：子页面追加作者名，首页直接用站点名
@@ -98,7 +108,7 @@ const personLd = {
   "@id": PERSON_ID,
   name: copy.author.name,
   alternateName: copy.author.alternateName,
-  url: SITE.url,
+  url: SITE_ROOT,
   jobTitle: copy.author.role,
   description: copy.author.summary,
   address: {
@@ -115,7 +125,7 @@ const personLd = {
 const webSiteLd = {
   "@type": "WebSite",
   "@id": WEBSITE_ID,
-  url: SITE.url,
+  url: SITE_ROOT,
   name: copy.title,
   description: copy.description,
   inLanguage: meta.htmlLang,
