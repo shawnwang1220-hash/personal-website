@@ -194,6 +194,28 @@ const jsonLdGraph = {
   ].map(withoutContext),
 };
 
+/**
+ * GA4 page_view 诊断插桩开关 —— 当前 false：已停用，代码整段保留在 <head> 里。
+ *
+ * 为什么加（2026-09-17 / 49d983c）：
+ *   排查博客收不到 GA4 page_view。在 GTM loader 之前包裹 dataLayer.push / fetch /
+ *   sendBeacon / XHR / Image，把每一次上报尝试记进 window.__diag —— 用来回答
+ *   「gtag 到底有没有尝试发 /g/collect，以及尝试的结果」。
+ *
+ * 为什么停用（2026-09-23）：
+ *   1) 排查结论已转向 GTM 容器侧（tag 6 被 Initialization - All Pages 与 History
+ *      Changes 双触发），插桩没有产出可采信的证据；
+ *   2) 它 hook 的正是上报通道本身 —— 留在线上，它就是一个比「GTM 用 define:vars
+ *      还是 set:html」大得多的变量，会污染后续任何对照；
+ *   3) 生产环境每个访客、每个页面都在跑这段诊断逻辑。
+ *
+ * 与「直接删掉」的区别：代码一行没少，只是为 false 时不进产物、不下发。需要复查时
+ * 把这里改回 true，再在 Console 跑
+ *   copy(JSON.stringify(window.__diag, null, 1))
+ * 读结果。
+ */
+const DIAG_PROBE = false;
+
 ---
 
 <!doctype html>
@@ -202,182 +224,187 @@ const jsonLdGraph = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    {/* ════════ GA4 page_view 排查临时插桩 —— 排查结束请整段删除（BEGIN） ════════ */}
-    {/* 目的：在 GTM/gtag 运行前包裹所有上报通道，记录「是否尝试发 /g/collect」+「尝试结果」 */}
-    {/* 读取：Console 跑 copy(JSON.stringify(window.__diag, null, 1)) */}
-    <script is:inline>
-      (function () {
-        var t0 = Date.now();
-        var L = [];
-        window.__diag = L;
-        function rec(o) {
-          o.t = Date.now() - t0;
-          L.push(o);
-        }
-        var HIT = /\/g\/collect|gtag\/js|gtm\.js/;
-        function u(a) {
-          try {
-            return a && a.url ? a.url : String(a);
-          } catch (e) {
-            return "?";
-          }
-        }
-
-        /* 1. dataLayer：先建后钩，记录 gtag 的 config / event 调用 */
-        try {
-          window.dataLayer = window.dataLayer || [];
-          var dl = window.dataLayer;
-          if (!dl.__hooked) {
-            var origPush = dl.push;
-            dl.push = function () {
-              try {
-                var a = arguments[0];
-                var k = a && a[0];
-                if (
-                  k === "config" ||
-                  k === "event" ||
-                  k === "consent" ||
-                  k === "js" ||
-                  k === "set"
-                ) {
-                  rec({ ch: "dataLayer", phase: String(k), arg: String(a[1] || "") });
-                }
-              } catch (e) {}
-              return origPush.apply(this, arguments);
-            };
-            dl.__hooked = true;
-            rec({ ch: "init", phase: "dataLayer-hooked", len: dl.length });
-          }
-        } catch (e) {
-          rec({ ch: "init", phase: "dataLayer-hook-failed", err: String(e) });
-        }
-
-        /* 2. fetch */
-        var _f = window.fetch;
-        if (_f) {
-          window.fetch = function () {
-            var url = u(arguments[0]);
-            if (!HIT.test(url)) return _f.apply(this, arguments);
-            rec({
-              ch: "fetch",
-              phase: "call",
-              url: url,
-              keepalive: !!(arguments[1] && arguments[1].keepalive),
-            });
-            var p = _f.apply(this, arguments);
-            try {
-              p.then(
-                function (r) {
-                  rec({ ch: "fetch", phase: "resolve", status: r.status, type: r.type, url: url });
-                },
-                function (e) {
-                  rec({ ch: "fetch", phase: "reject", err: String((e && e.message) || e), url: url });
-                }
-              );
-            } catch (e) {}
-            return p;
-          };
-        }
-
-        /* 3. sendBeacon */
-        if (navigator.sendBeacon) {
-          var _sb = navigator.sendBeacon.bind(navigator);
-          navigator.sendBeacon = function (url, data) {
-            if (!HIT.test(String(url))) return _sb(url, data);
-            var ok;
-            try {
-              ok = _sb(url, data);
-            } catch (e) {
-              rec({ ch: "beacon", phase: "throw", err: String(e), url: String(url) });
-              throw e;
+    {/* ════════ GA4 page_view 诊断插桩 —— 2026-09-23 起停用，代码整段保留（BEGIN） ════════ */}
+    {/* 开关是 frontmatter 的 DIAG_PROBE。为 false 时这段 <script> 不进构建产物，浏览器也
+        收不到它，自然不会 hook 任何上报通道（dataLayer / fetch / sendBeacon / XHR / Image）。
+        停用原因、恢复方法见该常量上方的注释。 */}
+    {
+      DIAG_PROBE && (
+        <script is:inline>
+          (function () {
+            var t0 = Date.now();
+            var L = [];
+            window.__diag = L;
+            function rec(o) {
+              o.t = Date.now() - t0;
+              L.push(o);
             }
-            rec({
-              ch: "beacon",
-              phase: ok ? "accepted" : "queue-failed",
-              url: String(url),
-              bytes: (data && (data.length || data.byteLength)) || 0,
-            });
-            return ok;
-          };
-        }
+            var HIT = /\/g\/collect|gtag\/js|gtm\.js/;
+            function u(a) {
+              try {
+                return a && a.url ? a.url : String(a);
+              } catch (e) {
+                return "?";
+              }
+            }
 
-        /* 4. XMLHttpRequest */
-        var _open = XMLHttpRequest.prototype.open;
-        var _send = XMLHttpRequest.prototype.send;
-        XMLHttpRequest.prototype.open = function (m, url) {
-          this.__u = String(url);
-          return _open.apply(this, arguments);
-        };
-        XMLHttpRequest.prototype.send = function () {
-          var x = this;
-          if (x.__u && HIT.test(x.__u)) {
-            rec({ ch: "xhr", phase: "send", url: x.__u });
-            x.addEventListener("loadend", function () {
-              rec({
-                ch: "xhr",
-                phase: "done",
-                status: x.status,
-                err: x.status === 0 ? "net-error" : "",
-                url: x.__u,
-              });
-            });
-          }
-          return _send.apply(this, arguments);
-        };
+            /* 1. dataLayer：先建后钩，记录 gtag 的 config / event 调用 */
+            try {
+              window.dataLayer = window.dataLayer || [];
+              var dl = window.dataLayer;
+              if (!dl.__hooked) {
+                var origPush = dl.push;
+                dl.push = function () {
+                  try {
+                    var a = arguments[0];
+                    var k = a && a[0];
+                    if (
+                      k === "config" ||
+                      k === "event" ||
+                      k === "consent" ||
+                      k === "js" ||
+                      k === "set"
+                    ) {
+                      rec({ ch: "dataLayer", phase: String(k), arg: String(a[1] || "") });
+                    }
+                  } catch (e) {}
+                  return origPush.apply(this, arguments);
+                };
+                dl.__hooked = true;
+                rec({ ch: "init", phase: "dataLayer-hooked", len: dl.length });
+              }
+            } catch (e) {
+              rec({ ch: "init", phase: "dataLayer-hook-failed", err: String(e) });
+            }
 
-        /* 5. Image（gtag 老式 transport 兜底） */
-        try {
-          var RealImg = window.Image;
-          var d = Object.getOwnPropertyDescriptor(RealImg.prototype, "src");
-          if (d && d.set) {
-            window.Image = function () {
-              var img = new RealImg();
-              Object.defineProperty(img, "src", {
-                configurable: true,
-                get: function () {
-                  return d.get.call(img);
-                },
-                set: function (v) {
-                  if (/collect/.test(String(v))) {
-                    rec({ ch: "img", phase: "set", url: String(v) });
-                    img.addEventListener("load", function () {
-                      rec({ ch: "img", phase: "load", url: String(v) });
-                    });
-                    img.addEventListener("error", function () {
-                      rec({ ch: "img", phase: "error", url: String(v) });
-                    });
-                  }
-                  d.set.call(img, v);
-                },
-              });
-              return img;
+            /* 2. fetch */
+            var _f = window.fetch;
+            if (_f) {
+              window.fetch = function () {
+                var url = u(arguments[0]);
+                if (!HIT.test(url)) return _f.apply(this, arguments);
+                rec({
+                  ch: "fetch",
+                  phase: "call",
+                  url: url,
+                  keepalive: !!(arguments[1] && arguments[1].keepalive),
+                });
+                var p = _f.apply(this, arguments);
+                try {
+                  p.then(
+                    function (r) {
+                      rec({ ch: "fetch", phase: "resolve", status: r.status, type: r.type, url: url });
+                    },
+                    function (e) {
+                      rec({ ch: "fetch", phase: "reject", err: String((e && e.message) || e), url: url });
+                    }
+                  );
+                } catch (e) {}
+                return p;
+              };
+            }
+
+            /* 3. sendBeacon */
+            if (navigator.sendBeacon) {
+              var _sb = navigator.sendBeacon.bind(navigator);
+              navigator.sendBeacon = function (url, data) {
+                if (!HIT.test(String(url))) return _sb(url, data);
+                var ok;
+                try {
+                  ok = _sb(url, data);
+                } catch (e) {
+                  rec({ ch: "beacon", phase: "throw", err: String(e), url: String(url) });
+                  throw e;
+                }
+                rec({
+                  ch: "beacon",
+                  phase: ok ? "accepted" : "queue-failed",
+                  url: String(url),
+                  bytes: (data && (data.length || data.byteLength)) || 0,
+                });
+                return ok;
+              };
+            }
+
+            /* 4. XMLHttpRequest */
+            var _open = XMLHttpRequest.prototype.open;
+            var _send = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.open = function (m, url) {
+              this.__u = String(url);
+              return _open.apply(this, arguments);
             };
-            window.Image.prototype = RealImg.prototype;
-          }
-        } catch (e) {}
+            XMLHttpRequest.prototype.send = function () {
+              var x = this;
+              if (x.__u && HIT.test(x.__u)) {
+                rec({ ch: "xhr", phase: "send", url: x.__u });
+                x.addEventListener("loadend", function () {
+                  rec({
+                    ch: "xhr",
+                    phase: "done",
+                    status: x.status,
+                    err: x.status === 0 ? "net-error" : "",
+                    url: x.__u,
+                  });
+                });
+              }
+              return _send.apply(this, arguments);
+            };
 
-        /* 6. 生命周期 */
-        window.addEventListener("pagehide", function () {
-          rec({ ch: "life", phase: "pagehide" });
-        });
-        document.addEventListener("visibilitychange", function () {
-          rec({ ch: "life", phase: "visibilitychange", vis: document.visibilityState });
-        });
-        document.addEventListener("prerenderingchange", function () {
-          rec({ ch: "life", phase: "prerenderingchange", pre: document.prerendering });
-        });
+            /* 5. Image（gtag 老式 transport 兜底） */
+            try {
+              var RealImg = window.Image;
+              var d = Object.getOwnPropertyDescriptor(RealImg.prototype, "src");
+              if (d && d.set) {
+                window.Image = function () {
+                  var img = new RealImg();
+                  Object.defineProperty(img, "src", {
+                    configurable: true,
+                    get: function () {
+                      return d.get.call(img);
+                    },
+                    set: function (v) {
+                      if (/collect/.test(String(v))) {
+                        rec({ ch: "img", phase: "set", url: String(v) });
+                        img.addEventListener("load", function () {
+                          rec({ ch: "img", phase: "load", url: String(v) });
+                        });
+                        img.addEventListener("error", function () {
+                          rec({ ch: "img", phase: "error", url: String(v) });
+                        });
+                      }
+                      d.set.call(img, v);
+                    },
+                  });
+                  return img;
+                };
+                window.Image.prototype = RealImg.prototype;
+              }
+            } catch (e) {}
 
-        /* 7. 启动快照 */
-        rec({
-          ch: "init",
-          phase: "boot",
-          pre: !!document.prerendering,
-          vis: document.visibilityState,
-          href: location.href,
-        });
-      })();
-    </script>
-    {/* ════════ GA4 page_view 排查临时插桩（END） ════════ */}
+            /* 6. 生命周期 */
+            window.addEventListener("pagehide", function () {
+              rec({ ch: "life", phase: "pagehide" });
+            });
+            document.addEventListener("visibilitychange", function () {
+              rec({ ch: "life", phase: "visibilitychange", vis: document.visibilityState });
+            });
+            document.addEventListener("prerenderingchange", function () {
+              rec({ ch: "life", phase: "prerenderingchange", pre: document.prerendering });
+            });
+
+            /* 7. 启动快照 */
+            rec({
+              ch: "init",
+              phase: "boot",
+              pre: !!document.prerendering,
+              vis: document.visibilityState,
+              href: location.href,
+            });
+          })();
+        </script>
+      )
+    }
+    {/* ════════ GA4 page_view 诊断插桩（END） ════════ */}
 
     <title>{fullTitle}</title>
     <meta name="description" content={pageDescription} />
