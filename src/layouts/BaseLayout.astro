@@ -194,32 +194,6 @@ const jsonLdGraph = {
   ].map(withoutContext),
 };
 
-/**
- * Google Tag Manager 官方标准嵌入代码。
- *
- * 用 set:html + is:inline 原样输出，而不是 define:vars —— define:vars 会自动包一层
- * (function(){ const gtmId = "..." })()，构建产物里首行被压平，和内联脚本的排版风格不一致。
- *
- * 模板字符串的缩进 = 产物中 <script> 内的最终缩进（刻意写成 6 空格），开头的换行是为了
- * 让内容不与 <script> 标签挤在同一行。调整缩进时记得同步。
- *
- * 中英页面共用同一段注入代码、同一容器 ID：本站的语言版本只是路由差异，
- * 不改变 GTM 的加载时机与方式，避免引入新的变量干扰 GTM 行为排查。
- */
-const gtmSnippet = SITE.gtmId
-  ? `
-      (function (w, d, s, l, i) {
-        w[l] = w[l] || [];
-        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
-        var f = d.getElementsByTagName(s)[0],
-          j = d.createElement(s),
-          dl = l != "dataLayer" ? "&l=" + l : "";
-        j.async = true;
-        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
-        f.parentNode.insertBefore(j, f);
-      })(window, document, "script", "dataLayer", "${SITE.gtmId}");
-    `
-  : "";
 ---
 
 <!doctype html>
@@ -484,8 +458,26 @@ const gtmSnippet = SITE.gtmId
       })();
     </script>
 
-    {/* GTM：is:inline + set:html 原样输出，产物里保持可读（详见 frontmatter 的 gtmSnippet） */}
-    {SITE.gtmId && <script is:inline set:html={gtmSnippet} />}
+    {/* GTM：沿用 Astro 初版写法 —— is:inline + define:vars（2026-09-23 由 set:html 回退）。
+        define:vars 隐含 is:inline，并把 gtmId 注入成 IIFE 作用域内的 const，构建产物里会
+        多包一层 (function(){ const gtmId = "GTM-..."; … })()。这就是 09-02 Astro 迁移时的
+        原始形态，不带任何本站特有写法 —— 回退目的即让埋点加载路径与初版逐字一致。 */}
+    {
+      SITE.gtmId && (
+        <script is:inline define:vars={{ gtmId: SITE.gtmId }}>
+          (function (w, d, s, l, i) {
+            w[l] = w[l] || [];
+            w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+            var f = d.getElementsByTagName(s)[0],
+              j = d.createElement(s),
+              dl = l != "dataLayer" ? "&l=" + l : "";
+            j.async = true;
+            j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+            f.parentNode.insertBefore(j, f);
+          })(window, document, "script", "dataLayer", gtmId);
+        </script>
+      )
+    }
   </head>
 
   <body class={bodyClass}>
