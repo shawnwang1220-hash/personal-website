@@ -7,7 +7,10 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "seo:check": "node scripts/seo-check.mjs",
+    "seo:meta": "node scripts/seo-check.mjs --meta",
+    "seo:selftest": "node scripts/seo-check.selftest.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
