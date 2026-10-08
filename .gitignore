@@ -7,6 +7,8 @@ node_modules/
 # 构建产物（Cloudflare Pages 会自己构建）
 dist/
 .astro/
+# 负向测试的临时副本（scripts/seo-check.selftest.mjs 自建自删；异常中断才会残留）
+dist-selftest/
 
 # 日志与环境变量
 *.log
