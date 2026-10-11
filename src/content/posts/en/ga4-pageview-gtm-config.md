@@ -84,7 +84,7 @@ The repo-to-build path checked out item by item: `.node-version` and `package-lo
 
 The decisive step was blunt. I mirrored the whole site to GitHub Pages. Same problem. Hosting was out.
 
-> One trap in this layer: my test machine runs through a proxy, and `googletagmanager.com` isn't directly reachable from mainland China. "It works from here" never meant "it works for a visitor." That false positive came back to bite repeatedly.
+> One trap in this layer: my test machine runs through a proxy, so its network path and egress IP look nothing like a real visitor's. "It works from here" never meant "it works for a visitor." That false positive came back to bite repeatedly.
 
 ### Rendering: Astro's build output
 
