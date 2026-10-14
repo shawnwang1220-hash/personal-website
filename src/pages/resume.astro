@@ -12,6 +12,9 @@ const email = SITE.author.email;
 const phone = SITE.author.phone;
 const phoneText = phone || "电话待补充";
 
+/** 简历 PDF 站点路径；空 = 仅打印导出 */
+const resumePdf = SITE.resumePdf;
+
 const resumeUrl = new URL(withTrailingSlash("/resume/"), SITE.url).href;
 
 /** 占位邮箱不写进结构化数据，避免对外输出一个无效联系地址 */
@@ -204,7 +207,16 @@ const jsonLd = [
       </section>
 
       <div class="resume-actions">
-        <button class="btn btn-primary" id="printBtn" type="button">下载 / 打印 PDF</button>
+        {
+          resumePdf ? (
+            <>
+              <a class="btn btn-primary" href={resumePdf} download>下载 PDF</a>
+              <button class="btn btn-ghost" id="printBtn" type="button">打印</button>
+            </>
+          ) : (
+            <button class="btn btn-primary" id="printBtn" type="button">下载 / 打印 PDF</button>
+          )
+        }
       </div>
     </div>
   </div>

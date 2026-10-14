@@ -104,4 +104,11 @@ export const SITE = {
    * （your@* / *@example.com）则降级为不可点按钮 + 说明文字。
    */
   hireEmail: "work@tianxu.uk",
+
+  /**
+   * 简历 PDF 的站点路径（文件放 public/ 下，填 "/xxx.pdf"）。
+   * 留空 → 简历页只保留「下载 / 打印」按钮（浏览器打印导出 PDF）；
+   * 填入路径 → 显示「下载 PDF」直链按钮 + 「打印」按钮。
+   */
+  resumePdf: "",
 } as const;

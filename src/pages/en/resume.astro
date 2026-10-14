@@ -16,6 +16,9 @@ const email = copy.author.email;
 const phone = copy.author.phone;
 const phoneText = phone || "Available on request";
 
+/** Résumé PDF site path; empty = print-only export */
+const resumePdf = SITE.resumePdf;
+
 const resumeUrl = new URL(withTrailingSlash("/en/resume/"), SITE.url).href;
 
 /** 占位邮箱不写进结构化数据，避免对外输出一个无效联系地址 */
@@ -210,7 +213,16 @@ const jsonLd = [
       </section>
 
       <div class="resume-actions">
-        <button class="btn btn-primary" id="printBtn" type="button">Download / Print PDF</button>
+        {
+          resumePdf ? (
+            <>
+              <a class="btn btn-primary" href={resumePdf} download>Download PDF</a>
+              <button class="btn btn-ghost" id="printBtn" type="button">Print</button>
+            </>
+          ) : (
+            <button class="btn btn-primary" id="printBtn" type="button">Download / Print PDF</button>
+          )
+        }
       </div>
     </div>
   </div>
