@@ -89,4 +89,19 @@ export const SITE = {
     { label: "案例", href: "/case/" },
     { label: "简历", href: "/resume/" },
   ],
+
+  /** 首页数据卡（中文；英文镜像在 i18n/ui.ts 的 SITE_COPY_EN.stats） */
+  stats: [
+    { value: "7+ 年", label: "B2B 数字营销经验" },
+    { value: "3.87x", label: "Google Ads ROAS 提升" },
+    { value: "0→1", label: "海外营销体系搭建" },
+    { value: "UA→GA4", label: "迁移与追踪架构" },
+  ],
+
+  /**
+   * Hire me CTA（首页底部 + /hire 页）的联系邮箱。
+   * 当前为占位值：HireCTA 会识别占位邮箱，不渲染指向不存在地址的 mailto
+   * 按钮。替换为真实邮箱即自动启用（README 占位清单已标注）。
+   */
+  hireEmail: "your@email.com",
 } as const;

@@ -2,7 +2,7 @@
  * 全站文案字典。
  *
  * 分两部分：
- * 1. `SiteCopy` —— 站点级元信息（标题、描述、作者、导航、工具栈、速览卡片），
+ * 1. `SiteCopy` —— 站点级元信息（标题、描述、作者、导航、工具栈、速览卡片、数据卡），
  *    中文取自 site.config.ts（避免两处维护），英文在这里独立定义。
  * 2. `UiCopy`   —— 界面固定文案（按钮、aria 标签、区块标题、页脚）。
  *
@@ -28,6 +28,8 @@ export interface SiteCopy {
   social: { github: string; linkedin: string };
   stack: readonly string[];
   facts: readonly { label: string; value: string }[];
+  /** 首页数据卡：value 为衬线大字号成果数字，label 为口径说明 */
+  stats: readonly { value: string; label: string }[];
   /** cta: true 的项在导航里渲染为实心主按钮（Hire me），其余为文字链 */
   nav: readonly { label: string; href: string; cta?: boolean }[];
 }
@@ -39,6 +41,7 @@ const SITE_COPY_ZH: SiteCopy = {
   social: { ...SITE.social },
   stack: SITE.stack,
   facts: SITE.facts,
+  stats: SITE.stats,
   nav: SITE.nav,
 };
 
@@ -77,6 +80,12 @@ const SITE_COPY_EN: SiteCopy = {
     { label: "Platforms", value: "Google Ads · GA4 · Salesforce · Pardot" },
     { label: "Interests", value: "Global growth · Data-driven · Automation" },
   ],
+  stats: [
+    { value: "7+ yrs", label: "in B2B digital marketing" },
+    { value: "3.87x", label: "Google Ads ROAS uplift" },
+    { value: "0→1", label: "global marketing stack built" },
+    { value: "UA→GA4", label: "migration & tracking architecture" },
+  ],
   nav: [
     { label: "Writing", href: "/en/posts/" },
     { label: "Experience", href: "/en/experience/" },
@@ -106,19 +115,30 @@ export interface UiCopy {
     rss: string;
   };
   home: {
-    heroPortraitAlt: string;
+    heroEyebrow: string;
     heroGreeting: string;
     heroName: string;
     heroWave: string;
     ctaPosts: string;
     ctaResume: string;
     socialsAria: string;
-    aboutHeading: string;
-    factsHeading: string;
-    stackHeading: string;
+    statsAria: string;
     latestHeading: string;
     postCount: (n: number) => string;
     viewAll: string;
+    experienceHeading: string;
+    experienceAll: string;
+    caseHeading: string;
+    caseAll: string;
+  };
+  /** Hire me CTA：首页底部与 /hire 页共用（C6 落地完整服务页） */
+  hire: {
+    title: string;
+    text: string;
+    cta: string;
+    /** 占位邮箱状态下按钮下方的说明 */
+    note: string;
+    services: readonly string[];
   };
   experience: {
     pageTitle: string;
@@ -179,19 +199,28 @@ const UI_ZH: UiCopy = {
     rss: "RSS 订阅",
   },
   home: {
-    heroPortraitAlt: "王天旭的头像",
+    heroEyebrow: "B2B 数字营销 · MarTech · 数据驱动",
     heroGreeting: "你好，我是",
     heroName: "王天旭",
     heroWave: "👋",
     ctaPosts: "阅读我的文章",
     ctaResume: "查看简历",
     socialsAria: "社交链接",
-    aboutHeading: "关于我",
-    factsHeading: "📌 速览",
-    stackHeading: "🛠️ 工具栈",
+    statsAria: "关键数据",
     latestHeading: "最新文章",
     postCount: (n) => `共 ${n} 篇`,
     viewAll: "查看全部 →",
+    experienceHeading: "经历",
+    experienceAll: "查看全部经历 →",
+    caseHeading: "案例",
+    caseAll: "查看全部案例 →",
+  },
+  hire: {
+    title: "让获客体系可衡量、可复制",
+    text: "无论你是要从 0 搭建海外获客体系、迁移 GA4，还是理顺 CRM 里的线索流转 —— 聊聊看，也许我能帮上。",
+    cta: "Hire me",
+    note: "（占位邮箱：在 site.config.ts 配置 hireEmail 后启用）",
+    services: ["GA4 / GTM / Server-Side Tagging", "CRM 线索管理", "广告投放与归因", "AI 营销自动化"],
   },
   experience: {
     pageTitle: "经历",
@@ -252,19 +281,33 @@ const UI_EN: UiCopy = {
     rss: "RSS feed",
   },
   home: {
-    heroPortraitAlt: "Portrait of Shawn Wang",
+    heroEyebrow: "B2B Digital Marketing · MarTech · Data-driven",
     heroGreeting: "Hi, I'm",
     heroName: "Shawn Wang",
     heroWave: "👋",
     ctaPosts: "Read my writing",
     ctaResume: "View résumé",
     socialsAria: "Social links",
-    aboutHeading: "About",
-    factsHeading: "📌 Quick facts",
-    stackHeading: "🛠️ Tool stack",
+    statsAria: "Key numbers",
     latestHeading: "Latest posts",
     postCount: (n) => `${n} post${n === 1 ? "" : "s"}`,
     viewAll: "View all →",
+    experienceHeading: "Experience",
+    experienceAll: "View full experience →",
+    caseHeading: "Case work",
+    caseAll: "View all cases →",
+  },
+  hire: {
+    title: "Make your demand engine measurable",
+    text: "Building global demand generation from scratch, migrating to GA4, or untangling lead flow in your CRM? Let's talk.",
+    cta: "Hire me",
+    note: "(Placeholder email — set hireEmail in site.config.ts to enable)",
+    services: [
+      "GA4 / GTM / Server-Side Tagging",
+      "CRM lead management",
+      "Paid ads & attribution",
+      "AI marketing automation",
+    ],
   },
   experience: {
     pageTitle: "Experience",

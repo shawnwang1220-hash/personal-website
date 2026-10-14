@@ -1,67 +1,86 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import StatCard from "../components/StatCard.astro";
 import PostCard from "../components/PostCard.astro";
-import SocialLinks from "../components/SocialLinks.astro";
-import { SITE } from "../site.config";
-import { Content as AboutContent } from "../data/about.md";
+import TimelineItem from "../components/TimelineItem.astro";
+import CaseCard from "../components/CaseCard.astro";
+import HireCTA from "../components/HireCTA.astro";
+import { getSiteCopy, getUiCopy } from "../i18n/ui";
+
+const copy = getSiteCopy("zh");
+const t = getUiCopy("zh");
 
 const posts = (await getCollection("posts", ({ data }) => !data.draft))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-
 const latest = posts.slice(0, 3);
+
+/* start 为 "2025.10" 形态，倒序按字典序即可 */
+const experiences = (await getCollection("experience")).sort((a, b) =>
+  b.data.start.localeCompare(a.data.start)
+);
+
+const cases = (await getCollection("cases")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
 
 // Person / WebSite 节点由 BaseLayout 统一注入，首页不再自行声明（避免两份真源）
 ---
 
 <BaseLayout>
-  <!-- ===== 首屏 ===== -->
-  <section class="hero container" id="hero">
-    <div class="hero-card reveal">
-      <img src="/avatar.svg" alt="王天旭的头像" class="hero-avatar" />
-      <h1 class="hero-name">你好，我是 <span class="accent">王天旭</span> 👋</h1>
-      <p class="hero-role">{SITE.author.role}</p>
-      <p class="hero-tagline">{SITE.author.summary}</p>
-      <div class="hero-buttons">
-        <a class="btn btn-primary" href="/posts/">阅读我的文章</a>
-        <a class="btn btn-ghost" href="/resume/">查看简历</a>
-      </div>
-      <div class="hero-socials" aria-label="社交链接">
-        <SocialLinks person={SITE.author.name} lang="zh" />
-        <a href="/rss.xml" title="RSS 订阅">
-          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9h-2a7 7 0 0 0-7-7v-2zm0-7a16 16 0 0 1 16 16h-2A14 14 0 0 0 4 6V4zm0 14a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>
-          RSS
-        </a>
-      </div>
+  <Hero lang="zh" />
+
+  {/* ===== 数据卡：四个固定口径的成绩 ===== */}
+  <section class="section container" aria-label={t.home.statsAria}>
+    <div class="stats-grid">
+      {copy.stats.map((s) => <StatCard value={s.value} label={s.label} />)}
     </div>
   </section>
 
-  <!-- ===== 关于我 ===== -->
-  <section class="section container" id="about">
-    <h2 class="section-title reveal"><span class="accent">#</span> 关于我</h2>
-    <div class="about-grid">
-      <article class="card markdown-body reveal">
-        <AboutContent />
-      </article>
-      <aside class="card side-card reveal">
-        <h3>📌 速览</h3>
-        <ul class="facts">
-          {SITE.facts.map((f) => <li><strong>{f.label}：</strong>{f.value}</li>)}
-        </ul>
-        <h3>🛠️ 工具栈</h3>
-        <div class="tags">
-          {SITE.stack.map((t) => <span class="tag">{t}</span>)}
-        </div>
-      </aside>
-    </div>
-  </section>
-
-  <!-- ===== 最新文章 ===== -->
+  {/* ===== 最新文章 ===== */}
   <section class="section container" id="articles">
-    <h2 class="section-title reveal"><span class="accent">#</span> 最新文章</h2>
-    <p class="section-sub reveal">共 {posts.length} 篇 · <a href="/posts/">查看全部 →</a></p>
-    <div class="post-grid">
-      {latest.map((post) => <PostCard post={post} />)}
+    <div class="section-head reveal">
+      <h2 class="section-title"><span class="accent">#</span> {t.home.latestHeading}</h2>
+      <p class="section-sub">{t.home.postCount(posts.length)} · <a href="/posts/">{t.home.viewAll}</a></p>
     </div>
+    <div class="post-grid">
+      {latest.map((post) => <PostCard post={post} compact />)}
+    </div>
+  </section>
+
+  {/* ===== 经历摘要（与 /experience 同源，默认折叠） ===== */}
+  <section class="section container" id="experience">
+    <div class="section-head reveal">
+      <h2 class="section-title"><span class="accent">#</span> {t.home.experienceHeading}</h2>
+      <p class="section-sub"><a href="/experience/">{t.home.experienceAll}</a></p>
+    </div>
+    {
+      experiences.length > 0 && (
+        <ul class="timeline">
+          {experiences.map((item) => <TimelineItem item={item} lang="zh" />)}
+        </ul>
+      )
+    }
+  </section>
+
+  {/* ===== 案例精选（与 /case 同源） ===== */}
+  <section class="section container" id="cases">
+    <div class="section-head reveal">
+      <h2 class="section-title"><span class="accent">#</span> {t.home.caseHeading}</h2>
+      <p class="section-sub"><a href="/case/">{t.home.caseAll}</a></p>
+    </div>
+    {
+      cases.length > 0 && (
+        <div class="case-grid">
+          {cases.map((item) => <CaseCard item={item} lang="zh" />)}
+        </div>
+      )
+    }
+  </section>
+
+  {/* ===== Hire me CTA ===== */}
+  <section class="section container">
+    <HireCTA lang="zh" />
   </section>
 </BaseLayout>

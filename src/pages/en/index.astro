@@ -1,11 +1,13 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import Hero from "../../components/Hero.astro";
+import StatCard from "../../components/StatCard.astro";
 import PostCard from "../../components/PostCard.astro";
-import SocialLinks from "../../components/SocialLinks.astro";
-import { SOCIAL_META } from "../../data/social";
+import TimelineItem from "../../components/TimelineItem.astro";
+import CaseCard from "../../components/CaseCard.astro";
+import HireCTA from "../../components/HireCTA.astro";
 import { getSiteCopy, getUiCopy } from "../../i18n/ui";
-import { Content as AboutContent } from "../../data/about.en.md";
 
 const lang = "en" as const;
 const copy = getSiteCopy(lang);
@@ -14,73 +16,72 @@ const t = getUiCopy(lang);
 const posts = (await getCollection("postsEn", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
-
 const latest = posts.slice(0, 3);
 
-// 社交链接的地址来自 site.config，展示名/图标来自 data/social.ts —— 两边靠 key 关联。
-// 构建期核对一次：有地址却缺展示元数据的账号会静默不渲染，这里把它变成一条可见的告警。
-const missingSocialMeta = Object.keys(copy.social).filter((k) => !(k in SOCIAL_META));
-if (missingSocialMeta.length) {
-  console.warn(
-    `[social] site.config.ts 里的这些账号在 data/social.ts 中缺少展示元数据，页面上不会出现：${missingSocialMeta.join(", ")}`
-  );
-}
+const experiences = (await getCollection("experienceEn")).sort((a, b) =>
+  b.data.start.localeCompare(a.data.start)
+);
+
+const cases = (await getCollection("casesEn")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
 
 // Person / WebSite 节点由 BaseLayout 统一注入，首页不再自行声明（避免两份真源）
 ---
 
 <BaseLayout lang={lang}>
-  <!-- ===== Hero ===== -->
-  <section class="hero container" id="hero">
-    <div class="hero-card reveal">
-      <img src="/avatar.svg" alt={t.home.heroPortraitAlt} class="hero-avatar" />
-      <h1 class="hero-name">
-        {t.home.heroGreeting} <span class="accent">{t.home.heroName}</span> {t.home.heroWave}
-      </h1>
-      <p class="hero-role">{copy.author.role}</p>
-      <p class="hero-tagline">{copy.author.summary}</p>
-      <div class="hero-buttons">
-        <a class="btn btn-primary" href="/en/posts/">{t.home.ctaPosts}</a>
-        <a class="btn btn-ghost" href="/en/resume/">{t.home.ctaResume}</a>
-      </div>
-      <div class="hero-socials" aria-label={t.home.socialsAria}>
-        <SocialLinks person={copy.author.name} lang={lang} />
-        <a href="/en/rss.xml" title="RSS feed">
-          <svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9h-2a7 7 0 0 0-7-7v-2zm0-7a16 16 0 0 1 16 16h-2A14 14 0 0 0 4 6V4zm0 14a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>
-          RSS
-        </a>
-      </div>
+  <Hero lang={lang} />
+
+  {/* ===== Stat cards: four fixed-metric proof points ===== */}
+  <section class="section container" aria-label={t.home.statsAria}>
+    <div class="stats-grid">
+      {copy.stats.map((s) => <StatCard value={s.value} label={s.label} />)}
     </div>
   </section>
 
-  <!-- ===== About ===== -->
-  <section class="section container" id="about">
-    <h2 class="section-title reveal"><span class="accent">#</span> {t.home.aboutHeading}</h2>
-    <div class="about-grid">
-      <article class="card markdown-body reveal">
-        <AboutContent />
-      </article>
-      <aside class="card side-card reveal">
-        <h3>{t.home.factsHeading}</h3>
-        <ul class="facts">
-          {copy.facts.map((f) => <li><strong>{f.label}:</strong> {f.value}</li>)}
-        </ul>
-        <h3>{t.home.stackHeading}</h3>
-        <div class="tags">
-          {copy.stack.map((s) => <span class="tag">{s}</span>)}
-        </div>
-      </aside>
-    </div>
-  </section>
-
-  <!-- ===== Latest posts ===== -->
+  {/* ===== Latest posts ===== */}
   <section class="section container" id="articles">
-    <h2 class="section-title reveal"><span class="accent">#</span> {t.home.latestHeading}</h2>
-    <p class="section-sub reveal">
-      {t.home.postCount(posts.length)} · <a href="/en/posts/">{t.home.viewAll}</a>
-    </p>
-    <div class="post-grid">
-      {latest.map((post) => <PostCard post={post} lang={lang} />)}
+    <div class="section-head reveal">
+      <h2 class="section-title"><span class="accent">#</span> {t.home.latestHeading}</h2>
+      <p class="section-sub">{t.home.postCount(posts.length)} · <a href="/en/posts/">{t.home.viewAll}</a></p>
     </div>
+    <div class="post-grid">
+      {latest.map((post) => <PostCard post={post} lang={lang} compact />)}
+    </div>
+  </section>
+
+  {/* ===== Experience summary (same source as /experience, collapsed by default) ===== */}
+  <section class="section container" id="experience">
+    <div class="section-head reveal">
+      <h2 class="section-title"><span class="accent">#</span> {t.home.experienceHeading}</h2>
+      <p class="section-sub"><a href="/en/experience/">{t.home.experienceAll}</a></p>
+    </div>
+    {
+      experiences.length > 0 && (
+        <ul class="timeline">
+          {experiences.map((item) => <TimelineItem item={item} lang={lang} />)}
+        </ul>
+      )
+    }
+  </section>
+
+  {/* ===== Featured cases (same source as /case) ===== */}
+  <section class="section container" id="cases">
+    <div class="section-head reveal">
+      <h2 class="section-title"><span class="accent">#</span> {t.home.caseHeading}</h2>
+      <p class="section-sub"><a href="/en/case/">{t.home.caseAll}</a></p>
+    </div>
+    {
+      cases.length > 0 && (
+        <div class="case-grid">
+          {cases.map((item) => <CaseCard item={item} lang={lang} />)}
+        </div>
+      )
+    }
+  </section>
+
+  {/* ===== Hire me CTA ===== */}
+  <section class="section container">
+    <HireCTA lang={lang} />
   </section>
 </BaseLayout>

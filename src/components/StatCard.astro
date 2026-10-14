@@ -1,0 +1,15 @@
+---
+interface Props {
+  /** 衬线大字号的成果数字，如 "3.87x" */
+  value: string;
+  /** 数字口径的一句话说明 */
+  label: string;
+}
+
+const { value, label } = Astro.props;
+---
+
+<div class="stat-card reveal">
+  <div class="stat-value">{value}</div>
+  <div class="stat-label">{label}</div>
+</div>

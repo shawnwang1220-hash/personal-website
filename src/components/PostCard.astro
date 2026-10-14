@@ -2,15 +2,18 @@
 import type { CollectionEntry } from "astro:content";
 import { getUiCopy } from "../i18n/ui";
 import type { Lang } from "../i18n/config";
+import Tag from "./Tag.astro";
 
 interface Props {
   /** 中文字集合 posts 或英文字集合 postsEn —— 两者 schema 相同 */
   post: CollectionEntry<"posts"> | CollectionEntry<"postsEn">;
   /** 卡片所属语言，决定链接前缀与「阅读全文」文案；中文页面无需传 */
   lang?: Lang;
+  /** 首页精选用：更紧凑的排版（小字号、隐去「阅读全文」） */
+  compact?: boolean;
 }
 
-const { post, lang = "zh" } = Astro.props;
+const { post, lang = "zh", compact = false } = Astro.props;
 const t = getUiCopy(lang);
 const { title, description, pubDate, tags } = post.data;
 
@@ -21,21 +24,18 @@ const dateText = pubDate.toISOString().slice(0, 10);
 const dateAttr = pubDate.toISOString();
 ---
 
-<article class="post-card reveal">
+<article class={`post-card reveal${compact ? " compact" : ""}`}>
   <h3><a href={`${prefix}/posts/${post.id}/`}>{title}</a></h3>
   <p class="excerpt">{description}</p>
   <div class="post-tags">
     {
       tags.map((tag) => (
-        <a class="tag" href={`${prefix}/tags/${encodeURIComponent(tag)}/`}>
-          {tag}
-        </a>
+        <Tag tag={tag} href={`${prefix}/tags/${encodeURIComponent(tag)}/`} />
       ))
     }
   </div>
   <div class="post-meta">
     <time datetime={dateAttr}>{dateText}</time>
-    <span class="dot"></span>
-    <span>{t.readMore}</span>
+    {!compact && <><span class="dot"></span><span>{t.readMore}</span></>}
   </div>
 </article>

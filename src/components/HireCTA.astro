@@ -1,0 +1,40 @@
+---
+import { SITE } from "../site.config";
+import { getUiCopy } from "../i18n/ui";
+import type { Lang } from "../i18n/config";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = getUiCopy(lang);
+
+/**
+ * 占位邮箱（your@* / *@example.com）不渲染 mailto 按钮 ——
+ * 与简历页共用同一套规则，避免对外输出指向不存在地址的链接。
+ * 站长在 site.config.ts 填入真实 hireEmail 后按钮自动生效。
+ */
+const isPlaceholder =
+  !SITE.hireEmail ||
+  SITE.hireEmail.startsWith("your@") ||
+  SITE.hireEmail.includes("example.com");
+---
+
+<div class="hire-cta reveal">
+  <h2>{t.hire.title}</h2>
+  <p>{t.hire.text}</p>
+  <div class="hire-services">
+    {t.hire.services.map((s) => <span class="tag">{s}</span>)}
+  </div>
+  {
+    isPlaceholder ? (
+      <>
+        <span class="btn btn-primary" aria-disabled="true">{t.hire.cta}</span>
+        <p class="hire-note">{t.hire.note}</p>
+      </>
+    ) : (
+      <a class="btn btn-primary" href={`mailto:${SITE.hireEmail}`}>{t.hire.cta}</a>
+    )
+  }
+</div>

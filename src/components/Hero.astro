@@ -1,0 +1,35 @@
+---
+import SocialLinks from "./SocialLinks.astro";
+import { getSiteCopy, getUiCopy } from "../i18n/ui";
+import type { Lang } from "../i18n/config";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const copy = getSiteCopy(lang);
+const t = getUiCopy(lang);
+const prefix = lang === "en" ? "/en" : "";
+---
+
+<section class="hero container" id="hero">
+  <div class="hero-card reveal">
+    <p class="hero-eyebrow">{t.home.heroEyebrow}</p>
+    <h1 class="hero-title">
+      {t.home.heroGreeting} <span class="accent">{t.home.heroName}</span> {t.home.heroWave}
+    </h1>
+    <p class="hero-tagline">{copy.author.summary}</p>
+    <div class="hero-buttons">
+      <a class="btn btn-primary" href={`${prefix}/posts/`}>{t.home.ctaPosts}</a>
+      <a class="btn btn-ghost" href={`${prefix}/resume/`}>{t.home.ctaResume}</a>
+    </div>
+    <div class="hero-socials" aria-label={t.home.socialsAria}>
+      <SocialLinks person={copy.author.name} lang={lang} />
+      <a href={`${prefix}/rss.xml`} title={t.footer.rss}>
+        <svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9h-2a7 7 0 0 0-7-7v-2zm0-7a16 16 0 0 1 16 16h-2A14 14 0 0 0 4 6V4zm0 14a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>
+        RSS
+      </a>
+    </div>
+  </div>
+</section>
