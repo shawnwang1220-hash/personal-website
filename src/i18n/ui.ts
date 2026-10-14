@@ -28,7 +28,8 @@ export interface SiteCopy {
   social: { github: string; linkedin: string };
   stack: readonly string[];
   facts: readonly { label: string; value: string }[];
-  nav: readonly { label: string; href: string }[];
+  /** cta: true 的项在导航里渲染为实心主按钮（Hire me），其余为文字链 */
+  nav: readonly { label: string; href: string; cta?: boolean }[];
 }
 
 const SITE_COPY_ZH: SiteCopy = {
@@ -90,14 +91,18 @@ export function getSiteCopy(lang: Lang): SiteCopy {
 export interface UiCopy {
   brandName: string;
   brandAria: string;
-  themeToggleAria: string;
+  navAria: string;
+  /** 主题按钮的无障碍标签按「点击后的动作」取值，由脚本按当前主题刷新 */
+  themeToDarkAria: string;
+  themeToLightAria: string;
   menuAria: string;
+  /** 导航里的 Hire me 实心按钮（配置了 nav.cta 项时渲染） */
+  hireCta: string;
   readMore: string;
   backToTop: string;
   footer: {
     copyright: (year: number) => string;
-    builtWith: string;
-    builtSuffix: string;
+    rss: string;
   };
   home: {
     heroPortraitAlt: string;
@@ -144,14 +149,16 @@ export interface UiCopy {
 const UI_ZH: UiCopy = {
   brandName: "王天旭 · Shawn",
   brandAria: "返回首页",
-  themeToggleAria: "切换深色 / 浅色模式",
+  navAria: "主导航",
+  themeToDarkAria: "切换到深色模式",
+  themeToLightAria: "切换到浅色模式",
   menuAria: "打开菜单",
+  hireCta: "Hire me",
   readMore: "阅读全文",
   backToTop: "返回顶部",
   footer: {
-    copyright: (year) => `© ${year} 王天旭 · 数字营销与 MarTech.`,
-    builtWith: "由",
-    builtSuffix: "构建 · 内容以 Markdown 维护",
+    copyright: (year) => `© ${year} 王天旭`,
+    rss: "RSS 订阅",
   },
   home: {
     heroPortraitAlt: "王天旭的头像",
@@ -198,14 +205,16 @@ const UI_ZH: UiCopy = {
 const UI_EN: UiCopy = {
   brandName: "Shawn Wang",
   brandAria: "Back to home",
-  themeToggleAria: "Toggle dark / light mode",
+  navAria: "Main navigation",
+  themeToDarkAria: "Switch to dark mode",
+  themeToLightAria: "Switch to light mode",
   menuAria: "Open menu",
+  hireCta: "Hire me",
   readMore: "Read more",
   backToTop: "Back to top",
   footer: {
-    copyright: (year) => `© ${year} Shawn Wang · Digital Marketing & MarTech.`,
-    builtWith: "Built with",
-    builtSuffix: "· Content maintained in Markdown",
+    copyright: (year) => `© ${year} Shawn Wang`,
+    rss: "RSS feed",
   },
   home: {
     heroPortraitAlt: "Portrait of Shawn Wang",

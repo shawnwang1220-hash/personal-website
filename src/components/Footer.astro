@@ -2,6 +2,7 @@
 import { getUiCopy } from "../i18n/ui";
 import { getLangFromPath } from "../i18n/config";
 import type { Lang } from "../i18n/config";
+import { SITE } from "../site.config";
 
 interface Props {
   lang?: Lang;
@@ -12,16 +13,13 @@ const { lang = getLangFromPath(Astro.url.pathname) } = Astro.props;
 const t = getUiCopy(lang);
 const langPrefix = lang === "en" ? "/en" : "";
 const year = new Date().getFullYear();
+const host = new URL(SITE.url).host;
 ---
 
 <footer class="site-footer">
   <div class="container footer-inner">
-    <p>{t.footer.copyright(year)}</p>
-    <p class="footer-sub">
-      {t.footer.builtWith} <a href="https://astro.build" target="_blank" rel="noopener">Astro</a> {t
-        .footer.builtSuffix} ·
-      <a href={`${langPrefix}/rss.xml`}>RSS</a>
-    </p>
+    <p>{t.footer.copyright(year)} · {host}</p>
+    <p class="footer-sub"><a href={`${langPrefix}/rss.xml`}>{t.footer.rss}</a></p>
   </div>
 </footer>
 

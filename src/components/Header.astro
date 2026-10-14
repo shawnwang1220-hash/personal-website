@@ -22,6 +22,13 @@ const homeHref = withTrailingSlash(lang === "en" ? "/en" : "/");
 /** 语言切换目标地址 */
 const altHref = withTrailingSlash(altPath ?? swapLangPath(Astro.url.pathname));
 
+/**
+ * Hire me CTA：仅当 nav 配置了 cta 项时渲染。
+ * 目标页未上线时不放死链 —— /hire 落地（C6）后再在 site.config.ts 启用。
+ */
+const ctaItem = copy.nav.find((item) => item.cta);
+const textLinks = copy.nav.filter((item) => !item.cta);
+
 // 两边都归一化（去掉尾斜杠）再比较，避免 /posts/ 与 /posts 被当成两个页面
 const bare = (p: string) => p.replace(/\/+$/, "") || "/";
 const current = bare(Astro.url.pathname);
@@ -33,7 +40,7 @@ const isActive = (href: string) => {
 ---
 
 <header class="site-header" id="top">
-  <nav class="nav container">
+  <nav class="nav container" aria-label={t.navAria}>
     <a class="brand" href={homeHref} aria-label={t.brandAria}>
       <img src="/avatar.svg" alt="" class="brand-avatar" />
       <span>{t.brandName}</span>
@@ -41,7 +48,7 @@ const isActive = (href: string) => {
 
     <ul class="nav-links" id="navLinks">
       {
-        copy.nav.map((item) => (
+        textLinks.map((item) => (
           <li>
             <a href={item.href} aria-current={isActive(item.href) ? "page" : undefined}>
               {item.label}
@@ -51,24 +58,37 @@ const isActive = (href: string) => {
       }
     </ul>
 
+    <div class="nav-spacer"></div>
+
     <div class="nav-actions">
+      {ctaItem && <a class="nav-cta" href={ctaItem.href}>{ctaItem.label}</a>}
+
+      {/* 语言切换：中 / EN 文字小按钮，沿用镜像路径推导机制 */}
       <a
-        class="lang-switch"
+        class="icon-btn lang-switch"
         href={altHref}
         hreflang={otherMeta.htmlLang}
         lang={otherMeta.htmlLang}
-        aria-label={LANG_META[lang].switchAria}
-        title={LANG_META[lang].switchAria}>{LANG_META[lang].switchShort}</a
+        aria-label={otherMeta.switchAria}
+        title={otherMeta.switchAria}>{otherMeta.switchShort}</a
       >
+
+      {/* 主题切换：太阳/月亮图标纯 CSS 显隐（亮→月，暗→日），
+          aria-label / title 由下方脚本按当前主题刷新为「点击后的动作」 */}
       <button
-        class="theme-toggle"
+        class="icon-btn theme-toggle"
         id="themeToggle"
         type="button"
-        aria-label={t.themeToggleAria}
-        title={t.themeToggleAria}
+        aria-label={t.themeToDarkAria}
+        title={t.themeToDarkAria}
+        data-label-light={t.themeToDarkAria}
+        data-label-dark={t.themeToLightAria}
       >
-        <span class="theme-icon">🌙</span>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>
       </button>
+
+      {/* 移动端汉堡：其余导航链接收进下拉菜单 */}
       <button
         class="hamburger"
         id="hamburger"
@@ -86,24 +106,37 @@ const isActive = (href: string) => {
 <script is:inline>
   /* 主题切换 —— 与 BaseLayout 里的防闪屏脚本共享 localStorage 键 */
   const toggle = document.getElementById("themeToggle");
-  const icon = toggle?.querySelector(".theme-icon");
+
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  }
 
   function applyTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
-    if (icon) icon.textContent = theme === "dark" ? "☀️" : "🌙";
+    /* 无障碍标签与图标（目标模式）保持一致 */
+    if (toggle) {
+      const label = theme === "dark" ? toggle.dataset.labelDark : toggle.dataset.labelLight;
+      if (label) {
+        toggle.setAttribute("aria-label", label);
+        toggle.setAttribute("title", label);
+      }
+    }
     try {
       localStorage.setItem("blog-theme", theme);
     } catch {}
   }
 
-  if (icon) {
-    icon.textContent =
-      document.documentElement.getAttribute("data-theme") === "dark" ? "☀️" : "🌙";
+  /* 首屏同步：data-theme 已由渲染前脚本设好，这里只校准按钮的无障碍标签 */
+  if (toggle) {
+    const label = currentTheme() === "dark" ? toggle.dataset.labelDark : toggle.dataset.labelLight;
+    if (label) {
+      toggle.setAttribute("aria-label", label);
+      toggle.setAttribute("title", label);
+    }
   }
 
   toggle?.addEventListener("click", () => {
-    const cur = document.documentElement.getAttribute("data-theme");
-    applyTheme(cur === "dark" ? "light" : "dark");
+    applyTheme(currentTheme() === "dark" ? "light" : "dark");
   });
 
   /* 移动端菜单 */
