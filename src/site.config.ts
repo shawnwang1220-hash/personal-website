@@ -100,8 +100,8 @@ export const SITE = {
 
   /**
    * Hire me CTA（首页底部 + /hire 页）的联系邮箱。
-   * 当前为占位值：HireCTA 会识别占位邮箱，不渲染指向不存在地址的 mailto
-   * 按钮。替换为真实邮箱即自动启用（README 占位清单已标注）。
+   * 填入真实邮箱后 HireCTA 自动渲染 mailto 按钮；若为占位值
+   * （your@* / *@example.com）则降级为不可点按钮 + 说明文字。
    */
-  hireEmail: "your@email.com",
+  hireEmail: "work@tianxu.uk",
 } as const;
