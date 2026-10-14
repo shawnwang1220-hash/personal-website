@@ -86,6 +86,7 @@ export const SITE = {
   nav: [
     { label: "文章", href: "/posts/" },
     { label: "经历", href: "/experience/" },
+    { label: "案例", href: "/case/" },
     { label: "简历", href: "/resume/" },
   ],
 } as const;

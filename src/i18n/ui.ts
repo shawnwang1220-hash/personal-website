@@ -80,6 +80,7 @@ const SITE_COPY_EN: SiteCopy = {
   nav: [
     { label: "Writing", href: "/en/posts/" },
     { label: "Experience", href: "/en/experience/" },
+    { label: "Case", href: "/en/case/" },
     { label: "Résumé", href: "/en/resume/" },
   ],
 };
@@ -125,6 +126,15 @@ export interface UiCopy {
     heading: string;
     intro: string;
     detailsLabel: string;
+    empty: string;
+  };
+  case: {
+    pageTitle: string;
+    pageDescription: string;
+    heading: string;
+    intro: string;
+    backLink: string;
+    resultLabel: string;
     empty: string;
   };
   posts: {
@@ -191,6 +201,15 @@ const UI_ZH: UiCopy = {
     detailsLabel: "展开详情",
     empty: "还没有经历数据。",
   },
+  case: {
+    pageTitle: "案例",
+    pageDescription: "王天旭的数字营销与 MarTech 案例 —— 获客体系搭建、GA4 迁移、CRM 线索管理与营销自动化。",
+    heading: "案例",
+    intro: "挑选有代表性的项目。每个案例按 背景 → 问题 → 方案 → 结果 → 工具栈 展开。",
+    backLink: "← 返回案例列表",
+    resultLabel: "核心结果",
+    empty: "还没有案例。",
+  },
   posts: {
     pageTitle: "文章",
     pageDescription: "王天旭关于海外 B2B 数字营销、GA4 数据追踪与营销自动化的实践记录。",
@@ -255,6 +274,16 @@ const UI_EN: UiCopy = {
     intro: "Reverse chronological. Each role is collapsed by default — expand for highlights and details.",
     detailsLabel: "Expand details",
     empty: "No experience entries yet.",
+  },
+  case: {
+    pageTitle: "Case work",
+    pageDescription:
+      "Selected digital marketing and MarTech case studies by Shawn Wang — demand generation systems, GA4 migration, CRM lead management and marketing automation.",
+    heading: "Case work",
+    intro: "Selected projects. Each case follows the same structure: context → problem → approach → results → stack.",
+    backLink: "← Back to all cases",
+    resultLabel: "Key result",
+    empty: "No cases yet.",
   },
   posts: {
     pageTitle: "Writing",

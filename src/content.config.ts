@@ -79,4 +79,28 @@ const experienceEn = defineCollection({
   schema: experienceSchema,
 });
 
-export const collections = { posts, postsEn, experience, experienceEn };
+/**
+ * 案例：src/content/cases/*.md（英文在 en/ 子目录）。
+ * result 为核心结果数字（如 "+214%"），列表卡与详情页头部共用；
+ * markdown 正文按「背景 → 问题 → 方案 → 结果 → 工具栈」五段式组织。
+ */
+const caseSchema = z.object({
+  title: z.string(),
+  tags: z.array(z.string()).default([]),
+  summary: z.string(),
+  result: z.string(),
+  cover: z.string().optional(),
+  date: z.coerce.date(),
+});
+
+const cases = defineCollection({
+  loader: glob({ pattern: ["**/*.md", "!en/**"], base: "./src/content/cases" }),
+  schema: caseSchema,
+});
+
+const casesEn = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/cases/en" }),
+  schema: caseSchema,
+});
+
+export const collections = { posts, postsEn, experience, experienceEn, cases, casesEn };

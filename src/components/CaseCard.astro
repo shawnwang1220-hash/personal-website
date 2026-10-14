@@ -1,0 +1,33 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Tag from "./Tag.astro";
+import type { Lang } from "../i18n/config";
+
+interface Props {
+  item: CollectionEntry<"cases"> | CollectionEntry<"casesEn">;
+  lang: Lang;
+  /** 标题层级：/case 列表页传 h2，首页精选用默认 h3 */
+  as?: "h2" | "h3";
+}
+
+const { item, lang, as: Heading = "h3" } = Astro.props;
+const prefix = lang === "en" ? "/en" : "";
+const { title, tags, summary, result, date } = item.data;
+
+const dateAttr = date.toISOString();
+const dateText = date.toISOString().slice(0, 10);
+---
+
+<article class="case-card reveal">
+  <div class="case-result">{result}</div>
+  <Heading>
+    <a href={`${prefix}/case/${item.id}/`}>{title}</a>
+  </Heading>
+  <p class="case-summary">{summary}</p>
+  <div class="case-tags">
+    {tags.map((tag) => <Tag tag={tag} />)}
+  </div>
+  <div class="post-meta">
+    <time datetime={dateAttr}>{dateText}</time>
+  </div>
+</article>

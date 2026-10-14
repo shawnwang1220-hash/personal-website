@@ -388,9 +388,9 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
   font-family: var(--serif); font-weight: 700;
   font-size: 34px; line-height: 1; color: var(--accent);
 }
-.case-card h3 { font-family: var(--serif); margin: 0; font-size: 18px; }
-.case-card h3 a { color: var(--ink); text-decoration: none; }
-.case-card h3 a:hover { color: var(--accent); }
+.case-card :is(h2, h3) { font-family: var(--serif); margin: 0; font-size: 18px; }
+.case-card :is(h2, h3) a { color: var(--ink); text-decoration: none; }
+.case-card :is(h2, h3) a:hover { color: var(--accent); }
 .case-summary { color: var(--muted); font-size: 14px; margin: 0; flex: 1; line-height: 1.7; }
 .case-tags { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -401,6 +401,7 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
 .case-detail-result {
   font-family: var(--serif); font-weight: 700; font-size: 22px; color: var(--accent);
 }
+.case-result-label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
 .case-section { margin: 0 0 8px; }
 .case-section h2 {
   font-family: var(--serif); font-size: 20px; margin: 34px 0 12px;

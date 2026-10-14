@@ -1,0 +1,49 @@
+---
+import { getCollection, render } from "astro:content";
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import Tag from "../../../components/Tag.astro";
+import { getUiCopy } from "../../../i18n/ui";
+
+export const getStaticPaths = (async () => {
+  const items = await getCollection("casesEn");
+  return items.map((item) => ({
+    params: { slug: item.id },
+    props: { item },
+  }));
+}) satisfies GetStaticPaths;
+
+const lang = "en" as const;
+const t = getUiCopy(lang);
+
+const { item } = Astro.props;
+const { Content } = await render(item);
+const { title, tags, summary, result, date } = item.data;
+
+const dateAttr = date.toISOString();
+const dateText = date.toISOString().slice(0, 10);
+---
+
+<BaseLayout lang={lang} title={title} description={summary} ogType="article">
+  <article class="section container">
+    <div class="prose">
+      <a class="back-link" href="/en/case/">{t.case.backLink}</a>
+
+      <header class="case-detail-head">
+        <h1>{title}</h1>
+        <div class="case-detail-meta">
+          <span class="case-result-label">{t.case.resultLabel}</span>
+          <span class="case-detail-result">{result}</span>
+          <time datetime={dateAttr}>{dateText}</time>
+        </div>
+        <div class="case-tags">
+          {tags.map((tag) => <Tag tag={tag} />)}
+        </div>
+      </header>
+
+      <div class="markdown-body">
+        <Content />
+      </div>
+    </div>
+  </article>
+</BaseLayout>

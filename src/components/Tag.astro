@@ -1,0 +1,19 @@
+---
+interface Props {
+  tag: string;
+  /** 有 href 渲染为链接（如标签聚合页），否则为纯文本芯片 */
+  href?: string;
+}
+
+const { tag, href } = Astro.props;
+---
+
+{
+  href ? (
+    <a class="tag" href={href}>
+      {tag}
+    </a>
+  ) : (
+    <span class="tag">{tag}</span>
+  )
+}
