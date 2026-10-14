@@ -1,0 +1,34 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import TimelineItem from "../../components/TimelineItem.astro";
+import { getUiCopy } from "../../i18n/ui";
+
+const lang = "en" as const;
+const t = getUiCopy(lang);
+
+const items = (await getCollection("experienceEn")).sort((a, b) =>
+  b.data.start.localeCompare(a.data.start)
+);
+---
+
+<BaseLayout lang={lang} title={t.experience.pageTitle} description={t.experience.pageDescription}>
+  <div class="section container">
+    <div class="page-head">
+      <h1>{t.experience.heading}</h1>
+      <p class="section-sub">{t.experience.intro}</p>
+    </div>
+
+    {
+      items.length > 0 ? (
+        <ul class="timeline">
+          {items.map((item) => (
+            <TimelineItem item={item} lang={lang} as="h2" />
+          ))}
+        </ul>
+      ) : (
+        <p>{t.experience.empty}</p>
+      )
+    }
+  </div>
+</BaseLayout>

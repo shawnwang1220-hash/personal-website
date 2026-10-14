@@ -78,8 +78,8 @@ const SITE_COPY_EN: SiteCopy = {
     { label: "Interests", value: "Global growth · Data-driven · Automation" },
   ],
   nav: [
-    { label: "Home", href: "/en/" },
     { label: "Writing", href: "/en/posts/" },
+    { label: "Experience", href: "/en/experience/" },
     { label: "Résumé", href: "/en/resume/" },
   ],
 };
@@ -118,6 +118,14 @@ export interface UiCopy {
     latestHeading: string;
     postCount: (n: number) => string;
     viewAll: string;
+  };
+  experience: {
+    pageTitle: string;
+    pageDescription: string;
+    heading: string;
+    intro: string;
+    detailsLabel: string;
+    empty: string;
   };
   posts: {
     pageTitle: string;
@@ -175,6 +183,14 @@ const UI_ZH: UiCopy = {
     postCount: (n) => `共 ${n} 篇`,
     viewAll: "查看全部 →",
   },
+  experience: {
+    pageTitle: "经历",
+    pageDescription: "王天旭的工作经历 —— 独立 MarTech 顾问、博睿数据海外数字营销、氦图科技 hireEZ 营销运营。",
+    heading: "经历",
+    intro: "按时间倒序排列。每段默认折叠，点击展开查看重点与详情。",
+    detailsLabel: "展开详情",
+    empty: "还没有经历数据。",
+  },
   posts: {
     pageTitle: "文章",
     pageDescription: "王天旭关于海外 B2B 数字营销、GA4 数据追踪与营销自动化的实践记录。",
@@ -230,6 +246,15 @@ const UI_EN: UiCopy = {
     latestHeading: "Latest posts",
     postCount: (n) => `${n} post${n === 1 ? "" : "s"}`,
     viewAll: "View all →",
+  },
+  experience: {
+    pageTitle: "Experience",
+    pageDescription:
+      "Shawn Wang's professional experience — independent MarTech consulting, global marketing at Bonree Data, and marketing operations at hireEZ.",
+    heading: "Experience",
+    intro: "Reverse chronological. Each role is collapsed by default — expand for highlights and details.",
+    detailsLabel: "Expand details",
+    empty: "No experience entries yet.",
   },
   posts: {
     pageTitle: "Writing",

@@ -53,4 +53,30 @@ const postsEn = defineCollection({
   schema: postSchema,
 });
 
-export const collections = { posts, postsEn };
+/**
+ * 工作经历：src/content/experience/*.md（英文在 en/ 子目录，与文章同构）。
+ * 首页 Experience 摘要与 /experience 时间线共用这一份数据；
+ * markdown 正文在页面上以 <details> 折叠展示。
+ */
+const experienceSchema = z.object({
+  company: z.string(),
+  role: z.string(),
+  /** "2025.10" 形式的年月。字符串即可，倒序按字典序 */
+  start: z.string(),
+  /** "至今" / "Present" */
+  end: z.string(),
+  summary: z.string().optional(),
+  highlights: z.array(z.string()).default([]),
+});
+
+const experience = defineCollection({
+  loader: glob({ pattern: ["**/*.md", "!en/**"], base: "./src/content/experience" }),
+  schema: experienceSchema,
+});
+
+const experienceEn = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/experience/en" }),
+  schema: experienceSchema,
+});
+
+export const collections = { posts, postsEn, experience, experienceEn };

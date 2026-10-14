@@ -1,0 +1,35 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import TimelineItem from "../components/TimelineItem.astro";
+import { getUiCopy } from "../i18n/ui";
+
+const lang = "zh" as const;
+const t = getUiCopy(lang);
+
+/* start 为 "2025.10" 形态，倒序按字典序即可 */
+const items = (await getCollection("experience")).sort((a, b) =>
+  b.data.start.localeCompare(a.data.start)
+);
+---
+
+<BaseLayout title={t.experience.pageTitle} description={t.experience.pageDescription}>
+  <div class="section container">
+    <div class="page-head">
+      <h1>{t.experience.heading}</h1>
+      <p class="section-sub">{t.experience.intro}</p>
+    </div>
+
+    {
+      items.length > 0 ? (
+        <ul class="timeline">
+          {items.map((item) => (
+            <TimelineItem item={item} lang={lang} as="h2" />
+          ))}
+        </ul>
+      ) : (
+        <p>{t.experience.empty}</p>
+      )
+    }
+  </div>
+</BaseLayout>
