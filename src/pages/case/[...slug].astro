@@ -3,7 +3,10 @@ import { getCollection, render } from "astro:content";
 import type { GetStaticPaths } from "astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Tag from "../../components/Tag.astro";
-import { getUiCopy } from "../../i18n/ui";
+import HireCTA from "../../components/HireCTA.astro";
+import { SITE } from "../../site.config";
+import { getUiCopy, getSiteCopy } from "../../i18n/ui";
+import { withTrailingSlash } from "../../i18n/config";
 
 export const getStaticPaths = (async () => {
   const items = await getCollection("cases");
@@ -15,16 +18,81 @@ export const getStaticPaths = (async () => {
 
 const lang = "zh" as const;
 const t = getUiCopy(lang);
+const copy = getSiteCopy(lang);
 
 const { item } = Astro.props;
 const { Content } = await render(item);
-const { title, tags, summary, result, date } = item.data;
+const { title, summary, tags, metric, problem, approach, result, learned, stack, cover, coverAlt, date } =
+  item.data;
 
 const dateAttr = date.toISOString();
-const dateText = date.toISOString().slice(0, 10);
+const dateText = dateAttr.slice(0, 10);
+
+// 与 canonical 保持一致：指向带尾斜杠的最终地址，而不是会被 308 的地址
+const caseUrl = new URL(withTrailingSlash(`/case/${item.id}`), SITE.url).href;
+const listUrl = new URL(withTrailingSlash("/case"), SITE.url).href;
+const homeUrl = new URL(withTrailingSlash("/"), SITE.url).href;
+
+// 分享图：没给 cover 就回落到站点默认图。取值规则必须与 BaseLayout 内的
+// ogImagePath 一致 —— 两边同源，否则 og:image 与 JSON-LD 的 image 会指向两张图。
+const ogImageUrl = new URL(cover ?? SITE.ogImage[lang], SITE.url).href;
+
+/**
+ * 四段结构化小节。空段直接跳过 —— 「结果 / 学到」按口径是二选一，
+ * 不强制两段都有（强制只会逼出凑数内容，schema 已用 superRefine 保证至少一段）。
+ */
+const sections = [
+  { id: "problem", label: t.case.sectionProblem, body: problem },
+  { id: "approach", label: t.case.sectionApproach, body: approach },
+  { id: "result", label: t.case.sectionResult, body: result },
+  { id: "learned", label: t.case.sectionLearned, body: learned },
+].filter((s): s is { id: string; label: string; body: string } => Boolean(s.body));
+
+/**
+ * 本页专属节点。author / publisher 引用的 #person 由 BaseLayout 注入到同一份
+ * @graph 内 —— @id 不能跨页面解析，本页没有对应节点就会变成「有引用、无定义」
+ * 的悬空引用，作者与发布者信息整段失效。
+ *
+ * 用 Article 而不是 BlogPosting：案例不是博客文章，语义上是对一个项目的书面叙述；
+ * Article 既诚实又有 Google Article 富结果支持（Project / CreativeWork 都没有）。
+ */
+const jsonLd = [
+  {
+    "@type": "Article",
+    headline: title,
+    description: summary,
+    datePublished: dateAttr,
+    dateModified: dateAttr,
+    inLanguage: "zh-CN",
+    // tags 是导航维度、stack 是工具维度，两者都进这个字段，合并时去重
+    keywords: [...new Set([...tags, ...stack])].join(", "),
+    url: caseUrl,
+    mainEntityOfPage: { "@type": "WebPage", "@id": caseUrl },
+    image: ogImageUrl,
+    author: { "@id": `${SITE.url}/#person` },
+    publisher: { "@id": `${SITE.url}/#person` },
+  },
+  {
+    "@type": "BreadcrumbList",
+    "@id": `${caseUrl}#breadcrumb`,
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: copy.title, item: homeUrl },
+      { "@type": "ListItem", position: 2, name: t.case.heading, item: listUrl },
+      { "@type": "ListItem", position: 3, name: title, item: caseUrl },
+    ],
+  },
+];
 ---
 
-<BaseLayout title={title} description={summary} ogType="article">
+<BaseLayout
+  lang={lang}
+  title={title}
+  description={summary}
+  ogType="article"
+  jsonLd={jsonLd}
+  image={cover}
+  imageAlt={coverAlt}
+>
   <article class="section container">
     <div class="prose">
       <a class="back-link" href="/case/">{t.case.backLink}</a>
@@ -32,18 +100,59 @@ const dateText = date.toISOString().slice(0, 10);
       <header class="case-detail-head">
         <h1>{title}</h1>
         <div class="case-detail-meta">
-          <span class="case-result-label">{t.case.resultLabel}</span>
-          <span class="case-detail-result">{result}</span>
+          {
+            metric && (
+              <>
+                <span class="case-result-label">{t.case.resultLabel}</span>
+                <span class="case-detail-result">{metric}</span>
+              </>
+            )
+          }
           <time datetime={dateAttr}>{dateText}</time>
         </div>
-        <div class="case-tags">
-          {tags.map((tag) => <Tag tag={tag} />)}
-        </div>
+        {
+          tags.length > 0 && (
+            <div class="case-tags">
+              {tags.map((tag) => (
+                <Tag tag={tag} />
+              ))}
+            </div>
+          )
+        }
       </header>
+
+      {
+        sections.map((s) => (
+          <section class="case-section" id={s.id}>
+            <h2>{s.label}</h2>
+            <p>{s.body}</p>
+          </section>
+        ))
+      }
 
       <div class="markdown-body">
         <Content />
       </div>
+
+      {
+        stack.length > 0 && (
+          <section class="case-section">
+            <h2>{t.case.stackLabel}</h2>
+            <div class="case-tags">
+              {stack.map((tool) => (
+                <Tag tag={tool} />
+              ))}
+            </div>
+          </section>
+        )
+      }
+
+      <HireCTA
+        lang={lang}
+        heading={t.case.ctaTitle}
+        text={t.case.ctaText}
+        services={[]}
+      />
     </div>
   </article>
 </BaseLayout>

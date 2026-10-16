@@ -15,7 +15,7 @@ import { withTrailingSlash } from "../i18n/config";
  * 现状（2026）：主流 AI 爬虫基本不主动抓取 /llms.txt，Google 已明确表示
  * 不支持。它的现实价值在开发者工具侧（Cursor、Claude Projects 等会读），
  * 以及作为面向 agent 场景的低成本期权。因此这里是动态生成而非手写维护 ——
- * 新增文章自动进入清单，不会像手写文件那样悄悄过期（过期的 llms.txt
+ * 新增文章与案例自动进入清单，不会像手写文件那样悄悄过期（过期的 llms.txt
  * 比没有更糟）。
  *
  * 发布为 text/plain，与规范建议一致。
@@ -28,22 +28,29 @@ const abs = (path: string) => new URL(withTrailingSlash(path), SITE.url).href;
 const oneLine = (s: string) => s.replace(/\s+/g, " ").trim();
 
 export const GET: APIRoute = async () => {
-  const [posts, postsEn] = await Promise.all([
+  const [posts, postsEn, cases, casesEn] = await Promise.all([
     getCollection("posts", ({ data }) => !data.draft),
     getCollection("postsEn", ({ data }) => !data.draft),
+    getCollection("cases"),
+    getCollection("casesEn"),
   ]);
 
   const byDateDesc = (a: { data: { pubDate: Date } }, b: { data: { pubDate: Date } }) =>
     b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+  const byCaseDateDesc = (a: { data: { date: Date } }, b: { data: { date: Date } }) =>
+    b.data.date.valueOf() - a.data.date.valueOf();
 
   const zh = [...posts].sort(byDateDesc);
   const en = [...postsEn].sort(byDateDesc);
+  // 案例没有 draft 字段，不需要过滤
+  const zhCases = [...cases].sort(byCaseDateDesc);
+  const enCases = [...casesEn].sort(byCaseDateDesc);
 
   const copyZh = getSiteCopy("zh");
   const copyEn = getSiteCopy("en");
 
   /**
-   * 一条文章记录。附发布日期是为了让读者（人或机器）能判断内容新鲜度 ——
+   * 一条记录（文章或案例）。附发布日期是为了让读者（人或机器）能判断内容新鲜度 ——
    * 这是 llms.txt 相对 sitemap 少有的、可叠加的语义。
    */
   const entry = (title: string, url: string, description: string, pubDate: Date) =>
@@ -69,6 +76,14 @@ ${zh.map((p) => entry(p.data.title, abs(`/posts/${p.id}`), p.data.description, p
 
 ${en.map((p) => entry(p.data.title, abs(`/en/posts/${p.id}`), p.data.description, p.data.pubDate)).join("\n")}
 
+## 案例（中文）
+
+${zhCases.map((c) => entry(c.data.title, abs(`/case/${c.id}`), c.data.summary, c.data.date)).join("\n")}
+
+## Case studies (English)
+
+${enCases.map((c) => entry(c.data.title, abs(`/en/case/${c.id}`), c.data.summary, c.data.date)).join("\n")}
+
 ## 站点结构
 
 - [首页](${abs("/")}): 站点入口，含个人简介、技能栈与最新文章
@@ -76,7 +91,7 @@ ${en.map((p) => entry(p.data.title, abs(`/en/posts/${p.id}`), p.data.description
 - [All posts](${abs("/en/posts/")}): 英文文章索引
 - [经历](${abs("/experience/")}): 中文 —— 工作经历时间线（含各段职责要点）
 - [Experience](${abs("/en/experience/")}): 英文 —— 同上
-- [案例](${abs("/case/")}): 中文 —— 项目案例列表（背景/方案/结果）
+- [案例](${abs("/case/")}): 中文 —— 项目案例列表（问题/做法/结果·学到）
 - [Case studies](${abs("/en/case/")}): 英文 —— 同上
 - [RSS](${abs("/rss.xml")}): 中文全文订阅源
 

@@ -419,6 +419,8 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
   font-family: var(--serif); font-size: 20px; margin: 34px 0 12px;
   padding-left: 12px; border-left: 4px solid var(--accent);
 }
+/* 四段正文走 <p>，不像 .markdown-body 那样有现成的段落规则，需要显式补排版 */
+.case-section p { margin: 0 0 1em; line-height: 1.8; }
 
 /* =========================================================
    Hire me（首页底部 CTA + /hire 页共用）

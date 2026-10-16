@@ -1,29 +1,16 @@
 ---
 title: "Placeholder case · 02"
 tags: ["Placeholder"]
-summary: "To be filled: one line on the context, your role and the key result."
-result: "+00%"
+summary: "TBD: one line covering the context, your role and the key result."
+metric: "+00%"
+problem: "TBD — industry and business stage, plus the core problem and why it mattered."
+approach: "TBD — what you actually did: strategy, process, stakeholders."
+result: "TBD — verified results, kept consistent with `metric`."
+learned: "TBD — what was the lever, what broke."
+stack: []
 date: 2025-06-01
 ---
 
-> Placeholder case. Replace with a real project — update both languages, and put the verified key result in `result`.
+## Details
 
-## Context
-
-(To be filled) Industry, business stage, and the situation before the project.
-
-## Problem
-
-(To be filled) The core problem to solve, and why it mattered.
-
-## Approach
-
-(To be filled) Strategy, tools, process and stakeholders — what you actually did.
-
-## Results
-
-(To be filled) Verified numbers, consistent with the `result` field.
-
-## Stack
-
-(To be filled) Platforms and tools used.
+TBD — data definitions, tables, further reading.

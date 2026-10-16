@@ -155,6 +155,16 @@ export interface UiCopy {
     intro: string;
     backLink: string;
     resultLabel: string;
+    /** 四段结构化小节标题 —— 与 frontmatter 的 problem/approach/result/learned 一一对应 */
+    sectionProblem: string;
+    sectionApproach: string;
+    sectionResult: string;
+    sectionLearned: string;
+    /** 工具栈小节标题（frontmatter 的 stack / Stack） */
+    stackLabel: string;
+    /** 案例页专属 CTA 文案，复用 HireCTA 组件；固定在字典里，不随案例变化 */
+    ctaTitle: string;
+    ctaText: string;
     empty: string;
   };
   posts: {
@@ -234,9 +244,16 @@ const UI_ZH: UiCopy = {
     pageTitle: "案例",
     pageDescription: "王天旭的数字营销与 MarTech 案例 —— 获客体系搭建、GA4 迁移、CRM 线索管理与营销自动化。",
     heading: "案例",
-    intro: "挑选有代表性的项目。每个案例按 背景 → 问题 → 方案 → 结果 → 工具栈 展开。",
+    intro: "挑选有代表性的项目。每个案例按 问题 → 做法 → 结果 / 学到 展开。",
     backLink: "← 返回案例列表",
     resultLabel: "核心结果",
+    sectionProblem: "问题",
+    sectionApproach: "做法",
+    sectionResult: "结果",
+    sectionLearned: "学到",
+    stackLabel: "工具栈",
+    ctaTitle: "这个流程，我也能在你的项目里跑一遍",
+    ctaText: "从问题定位到落地验证 —— 聊聊你现在的进度和卡点。",
     empty: "还没有案例。",
   },
   posts: {
@@ -323,9 +340,16 @@ const UI_EN: UiCopy = {
     pageDescription:
       "Selected digital marketing and MarTech case studies by Shawn Wang — demand generation systems, GA4 migration, CRM lead management and marketing automation.",
     heading: "Case work",
-    intro: "Selected projects. Each case follows the same structure: context → problem → approach → results → stack.",
+    intro: "Selected projects. Each case follows the same structure: problem → approach → results / what I learned.",
     backLink: "← Back to all cases",
     resultLabel: "Key result",
+    sectionProblem: "Problem",
+    sectionApproach: "Approach",
+    sectionResult: "Results",
+    sectionLearned: "What I learned",
+    stackLabel: "Stack",
+    ctaTitle: "I can run this same playbook on your project",
+    ctaText: "From problem framing to verified results — let's talk about where you are today.",
     empty: "No cases yet.",
   },
   posts: {

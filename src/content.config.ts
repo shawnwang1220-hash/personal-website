@@ -80,26 +80,73 @@ const experienceEn = defineCollection({
 });
 
 /**
- * 案例：src/content/cases/*.md（英文在 en/ 子目录）。
- * result 为核心结果数字（如 "+214%"），列表卡与详情页头部共用；
- * markdown 正文按「背景 → 问题 → 方案 → 结果 → 工具栈」五段式组织。
+ * 案例：src/content/cases/*.md（英文在 en/ 子目录，文件名同名成对）。
+ *
+ * 结构对齐「问题 → 做法 → 结果 / 学到」：
+ *   - problem / approach 必填，1–3 句结论式纯文本，模板用 <p> 直出；
+ *   - result / learned 各自可选，但至少填一段（superRefine 强制）—— 对应「结果 / 学到」；
+ *   - metric 是列表卡与详情页头部的核心结果数字（如 "+214%"），原 result 改名；
+ *   - stack 是工具栈；
+ *   - 数据表、口径说明、延伸链接等细节一律写进 markdown 正文，走 <Content />。
+ *
+ * 四段刻意保持**纯文本**，不支持行内 markdown：支持它就得 set:html，
+ * 而仓库没有可复用的构建期 markdown 渲染器（marked 只是传递依赖）。
+ * 富文本本来就该进正文，两处分工比让四段也支持 markdown 更清晰。
+ *
+ * 这里的 z 来自 astro:content 内嵌的 zod v3，因此用 .superRefine +
+ * z.ZodIssueCode.custom 这一 v3 写法。
  */
-const caseSchema = z.object({
-  title: z.string(),
-  tags: z.array(z.string()).default([]),
-  summary: z.string(),
-  result: z.string(),
-  cover: z.string().optional(),
-  date: z.coerce.date(),
-});
+const caseSchema = z
+  .object({
+    title: z.string(),
+    /** 列表卡摘要 + 详情页 meta description：一句话 = 背景 + 角色 + 核心结果 */
+    summary: z.string(),
+    tags: z.array(z.string()).default([]),
+    /** 核心结果数字，列表卡大字号展示；无量化结果时可省略 */
+    metric: z.string().optional(),
+    /** 问题（背景并入开头） */
+    problem: z.string().trim().min(1),
+    /** 做法 */
+    approach: z.string().trim().min(1),
+    /** 结果（与 learned 至少一段） */
+    result: z.string().optional(),
+    /** 学到（与 result 至少一段） */
+    learned: z.string().optional(),
+    /** 工具栈 */
+    stack: z.array(z.string()).default([]),
+    cover: z.string().optional(),
+    /** 分享图的替代文本，输出为 og:image:alt / twitter:image:alt */
+    coverAlt: z.string().optional(),
+    date: z.coerce.date(),
+  })
+  .superRefine((d, ctx) => {
+    if (!d.result?.trim() && !d.learned?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["result"],
+        message: "案例需要「结果」或「学到」至少一段（填 result 或 learned）",
+      });
+    }
+  });
 
+/**
+ * 必须显式排除 en/ 子目录 —— 否则英文案例会被中文集合重复收录，
+ * 生成 /case/en/xxx 这类错误路由（与 posts 同构）。
+ *
+ * 下面两个 collection 的 pattern 还排除了「下划线开头的文件」，为的是让
+ * _template.md 留在同目录当填写骨架、却永不被收成条目：glob loader 不认
+ * 下划线约定，若不排除，_template 会生成 /case/_template/，而它的 hreflang
+ * 指向不存在的 /en/case/_template/ —— seo:check 直接 FAIL。
+ * 不用 Astro 文档推荐的「[^_]*」写法：那会连 ga4_migration 这类含下划线的
+ * 正常文件名一起丢掉。
+ */
 const cases = defineCollection({
-  loader: glob({ pattern: ["**/*.md", "!en/**"], base: "./src/content/cases" }),
+  loader: glob({ pattern: ["**/*.md", "!en/**", "!**/_*"], base: "./src/content/cases" }),
   schema: caseSchema,
 });
 
 const casesEn = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/cases/en" }),
+  loader: glob({ pattern: ["**/*.md", "!**/_*"], base: "./src/content/cases/en" }),
   schema: caseSchema,
 });
 

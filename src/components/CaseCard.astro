@@ -12,14 +12,14 @@ interface Props {
 
 const { item, lang, as: Heading = "h3" } = Astro.props;
 const prefix = lang === "en" ? "/en" : "";
-const { title, tags, summary, result, date } = item.data;
+const { title, tags, summary, metric, date } = item.data;
 
 const dateAttr = date.toISOString();
 const dateText = date.toISOString().slice(0, 10);
 ---
 
 <article class="case-card reveal">
-  <div class="case-result">{result}</div>
+  {metric && <div class="case-result">{metric}</div>}
   <Heading>
     <a href={`${prefix}/case/${item.id}/`}>{title}</a>
   </Heading>

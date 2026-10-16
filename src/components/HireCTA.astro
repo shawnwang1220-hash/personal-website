@@ -5,10 +5,23 @@ import type { Lang } from "../i18n/config";
 
 interface Props {
   lang: Lang;
+  /**
+   * 以下四项可选，用于在别的语境下复用同一套 CTA（如案例详情页）：
+   * 首页与 /hire 页不传，直接用 t.hire 的默认文案。
+   *
+   * 之所以不另建 CaseCTA 组件：占位邮箱降级规则与 .hire-cta 样式只应有一份真源，
+   * 复制一套会在两处各留一个「邮箱换成真实地址后忘了改」的坑。
+   */
+  heading?: string;
+  text?: string;
+  /** 服务标签；显式传空数组可隐藏该行（案例页不需要） */
+  services?: readonly string[];
+  cta?: string;
 }
 
-const { lang } = Astro.props;
+const { lang, heading, text, services, cta } = Astro.props;
 const t = getUiCopy(lang);
+const serviceList = services ?? t.hire.services;
 
 /**
  * 占位邮箱（your@* / *@example.com）不渲染 mailto 按钮 ——
@@ -22,19 +35,25 @@ const isPlaceholder =
 ---
 
 <div class="hire-cta reveal">
-  <h2>{t.hire.title}</h2>
-  <p>{t.hire.text}</p>
-  <div class="hire-services">
-    {t.hire.services.map((s) => <span class="tag">{s}</span>)}
-  </div>
+  <h2>{heading ?? t.hire.title}</h2>
+  <p>{text ?? t.hire.text}</p>
+  {
+    serviceList.length > 0 && (
+      <div class="hire-services">
+        {serviceList.map((s) => (
+          <span class="tag">{s}</span>
+        ))}
+      </div>
+    )
+  }
   {
     isPlaceholder ? (
       <>
-        <span class="btn btn-primary" aria-disabled="true">{t.hire.cta}</span>
+        <span class="btn btn-primary" aria-disabled="true">{cta ?? t.hire.cta}</span>
         <p class="hire-note">{t.hire.note}</p>
       </>
     ) : (
-      <a class="btn btn-primary" href={`mailto:${SITE.hireEmail}`}>{t.hire.cta}</a>
+      <a class="btn btn-primary" href={`mailto:${SITE.hireEmail}`}>{cta ?? t.hire.cta}</a>
     )
   }
 </div>

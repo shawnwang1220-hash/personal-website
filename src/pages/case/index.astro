@@ -12,7 +12,7 @@ const items = (await getCollection("cases")).sort(
 );
 ---
 
-<BaseLayout title={t.case.pageTitle} description={t.case.pageDescription}>
+<BaseLayout lang={lang} title={t.case.pageTitle} description={t.case.pageDescription}>
   <div class="section container">
     <div class="page-head">
       <h1>{t.case.heading}</h1>
