@@ -189,6 +189,11 @@ img { max-width: 100%; }
   padding: 56px 48px;
   background-image: radial-gradient(120% 140% at 0% 0%, var(--soft) 0%, transparent 45%);
 }
+.hero-avatar {
+  display: block; width: 104px; height: 104px;
+  border-radius: 26px; box-shadow: var(--shadow-sm);
+  margin: 0 0 20px;
+}
 .hero-eyebrow {
   font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
   color: var(--accent); margin: 0 0 14px;
@@ -619,6 +624,7 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
 }
 @media (max-width: 640px) {
   .post-head h1 { font-size: 24px; }
+  .hero-avatar { width: 88px; height: 88px; border-radius: 22px; }
   .stats-grid { grid-template-columns: 1fr; }
   .resume { padding: 28px 22px; }
   .resume-header { flex-direction: column; }

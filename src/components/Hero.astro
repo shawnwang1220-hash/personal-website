@@ -15,6 +15,8 @@ const prefix = lang === "en" ? "/en" : "";
 
 <section class="hero container" id="hero">
   <div class="hero-card reveal">
+    {/* 装饰性人像：姓名已在下文 h1 里，alt 留空避免读屏重复 */}
+    <img src="/avatar.svg" alt="" class="hero-avatar" />
     <p class="hero-eyebrow">{t.home.heroEyebrow}</p>
     <h1 class="hero-title">
       {t.home.heroGreeting} <span class="accent">{t.home.heroName}</span> {t.home.heroWave}
