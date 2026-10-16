@@ -14,7 +14,7 @@ database_id = "REPLACE_WITH_D1_DATABASE_ID"
 # ── 非敏感变量 ────────────────────────────────────────────────────────
 [vars]
 # Notion 数据库 ID（数据库页面 URL 里那串 32 位字符）
-NOTION_DATABASE_ID = "REPLACE_WITH_NOTION_DATABASE_ID"
+NOTION_DATABASE_ID = "3fbbb47eab6d808eab80c0ac4288629f"
 # 通知邮件收件人
 NOTIFY_TO = "work@tianxu.uk"
 # 发件地址。需先在 Resend 验证 tianxu.uk 域名（DNS 加 MX/TXT/DKIM 三条记录），
