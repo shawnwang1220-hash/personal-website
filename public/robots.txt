@@ -1,5 +1,5 @@
 # ══════════════════════════════════════════════════════════════════════════
-#  blog.tianxu.uk — robots.txt
+#  tianxu.uk — robots.txt
 #
 #  策略：欢迎检索与引用，不授权训练。
 #
@@ -29,7 +29,7 @@ Allow: /
 # 识别」——Cloudflare 官方说明这不影响抓取率与 SEO。
 Content-Signal: search=yes, ai-input=yes, ai-train=no, use=reference
 
-Sitemap: https://blog.tianxu.uk/sitemap-index.xml
+Sitemap: https://tianxu.uk/sitemap-index.xml
 
 # ── 检索型：显式允许 ─────────────────────────────────────────────────────
 # 这几支决定内容能否被 AI 回答引用。禁止它们等于放弃 GEO 的全部收益。
@@ -127,4 +127,4 @@ Disallow: /
 
 # ── 机器可读的内容目录 ───────────────────────────────────────────────────
 # 面向 AI 的内容索引（站点结构、文章清单、引用偏好）：
-#   https://blog.tianxu.uk/llms.txt
+#   https://tianxu.uk/llms.txt

@@ -1,14 +1,17 @@
-# blog.tianxu.uk — Astro 静态博客
+# tianxu.uk — Astro 静态博客
 
 内容优先的静态博客，中英双语。每篇 `.md` 自动生成一个独立 URL，纯 HTML 输出、零客户端 JS。
 
 - 中文站：`/`（默认语言，无路径前缀）
 - 英文站：`/en`
-- 正式域名：https://blog.tianxu.uk
+- 正式域名：https://tianxu.uk
+- 旧域名 `blog.tianxu.uk` 全站 301 到主域 —— 规则配在 Cloudflare **zone 级 Redirect Rule**，
+  不在本仓库（Pages 的 `_redirects` 无法按 hostname 匹配：两个域绑在同一个 Pages 项目上时，
+  `/*` 规则会让新域 301 到自己，形成无限循环）
 
 ## 分支与部署
 
-**部署唯一入口是 `main`。** 推送到 `main` 即由 Cloudflare Pages 自动构建并部署到 blog.tianxu.uk。
+**部署唯一入口是 `main`。** 推送到 `main` 即由 Cloudflare Pages 自动构建并部署到 tianxu.uk。
 **但功能开发不要直推 `main`** —— 一律切分支开发、完成后走 PR 合并（本项目纪律）。
 （CF Pages 上该仓库也会为其他分支生成 preview 部署，用于预览改动，属正常行为。）
 
