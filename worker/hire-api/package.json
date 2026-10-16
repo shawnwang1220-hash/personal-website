@@ -1,0 +1,15 @@
+{
+  "name": "hire-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute hire-submissions --file=schema.sql --remote",
+    "db:init:local": "wrangler d1 execute hire-submissions --file=schema.sql --local",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.0"
+  }
+}

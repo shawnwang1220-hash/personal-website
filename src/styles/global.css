@@ -625,3 +625,163 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
   .resume-contact { text-align: left; }
   .resume-contact .row { justify-content: flex-start; }
 }
+
+/* =========================================================
+   /hire 服务页
+   ========================================================= */
+
+/* 修一处层叠问题：`.section`（下文）与 `.container`（上文）同为单类选择器，
+   而 `.section` 的 padding 简写在后，会把 `.container` 的左右 20px 覆盖成 0。
+   这里用双类提高优先级把左右内边距拿回来 —— 只作用于本页，不动全站既有页面。
+   （全站同名问题另有记录，待统一处理后这条可删。） */
+.hire-page .section.container { padding-inline: 20px; }
+
+/* ---------- 首屏 ---------- */
+.hire-hero { padding-top: 0; }
+.hire-hero-title {
+  font-family: var(--serif); font-weight: 700;
+  font-size: clamp(28px, 4.6vw, 40px); line-height: 1.25; letter-spacing: -0.5px;
+  margin: 0 0 16px; max-width: 800px;
+}
+.hire-hero-lead {
+  color: var(--muted); font-size: 16.5px; line-height: 1.8;
+  max-width: 720px; margin: 0 0 26px;
+}
+.hire-hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+.hire-hero-trust { margin: 22px 0 0; font-size: 13px; color: var(--muted); }
+
+/* ---------- 痛点 ---------- */
+.hire-pains {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+}
+.hire-pains li {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 20px 22px;
+}
+.hire-pains strong { display: block; font-size: 15.5px; margin-bottom: 6px; line-height: 1.6; }
+.hire-pains span { color: var(--muted); font-size: 13.5px; line-height: 1.7; }
+
+/* ---------- 表格（服务清单 / 合作方式） ---------- */
+.hire-table-wrap {
+  overflow-x: auto; background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius);
+}
+.hire-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.hire-table th, .hire-table td {
+  text-align: left; padding: 14px 18px; vertical-align: top; line-height: 1.7;
+}
+.hire-table thead th {
+  font-size: 12.5px; font-weight: 700; letter-spacing: .04em; color: var(--muted);
+  border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+.hire-table tbody tr + tr th,
+.hire-table tbody tr + tr td { border-top: 1px solid var(--line); }
+.hire-table tbody th { font-weight: 600; white-space: nowrap; }
+.hire-table tbody td { color: var(--muted); }
+
+/* ---------- 证据 ---------- */
+.hire-proof { display: grid; gap: 16px; }
+.hire-proof-item {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 22px 24px;
+}
+.hire-proof-item h3 { font-size: 16px; margin: 0 0 10px; }
+.hire-proof-item p { color: var(--muted); margin: 0; font-size: 14px; line-height: 1.8; }
+.hire-proof-link { display: inline-block; margin-top: 12px; font-size: 13.5px; }
+
+/* ---------- 流程（.hire-steps / .hire-step / .hire-step-num 见上方 Hire me 区块） ---------- */
+.hire-steps-title { font-family: var(--serif); font-size: 18px; margin: 34px 0 0; }
+
+/* ---------- FAQ ---------- */
+.hire-faq { display: grid; gap: 18px; }
+.hire-faq-item h3 { font-size: 15.5px; margin: 0 0 8px; }
+.hire-faq-item p { color: var(--muted); margin: 0; font-size: 14px; line-height: 1.8; }
+
+/* ---------- 兜底联系方式 ---------- */
+.hire-contact h2 { font-family: var(--serif); font-size: 20px; margin: 0 0 8px; }
+.hire-contact > p { color: var(--muted); margin: 0 0 18px; }
+.hire-contact-list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-wrap: wrap; gap: 12px 28px;
+}
+.hire-contact-list li { display: flex; align-items: baseline; gap: 10px; font-size: 14.5px; }
+.hire-contact-label {
+  font-size: 11.5px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+}
+
+/* ---------- 表单 ---------- */
+.hire-form-wrap { max-width: 620px; }
+.hire-form { display: grid; gap: 18px; }
+.hire-field { display: grid; gap: 7px; }
+.hire-field label { font-size: 13.5px; font-weight: 600; }
+.hire-form input, .hire-form textarea {
+  width: 100%; font-family: var(--font); font-size: 15px; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--muted);
+  border-radius: var(--radius-sm); padding: 11px 14px; line-height: 1.6;
+  transition: border-color .2s, box-shadow .2s;
+}
+.hire-form textarea { resize: vertical; min-height: 120px; }
+/* 交互控件的描边要满足 3:1，浅灰 --line 不够 —— 常态用 --muted，聚焦用 --accent */
+.hire-form input:focus, .hire-form textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.hire-form input::placeholder, .hire-form textarea::placeholder { color: var(--muted); }
+.hire-form button[type="submit"] { justify-self: start; }
+.hire-form button[type="submit"]:disabled { opacity: .6; cursor: default; transform: none; }
+.hire-form-error {
+  margin: 0; padding: 11px 14px; border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--warm) 14%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--warm) 45%, var(--line));
+  color: var(--ink); font-size: 13.5px;
+}
+.hire-form-note { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+.hire-form-done {
+  background: var(--soft); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 28px 26px;
+}
+.hire-form-done h3 { font-family: var(--serif); font-size: 20px; margin: 0 0 8px; }
+.hire-form-done > p { margin: 0 0 10px; color: var(--muted); line-height: 1.8; }
+.hire-form-done > p:last-child { margin-bottom: 0; }
+
+@media (max-width: 860px) {
+  .hire-pains { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .hire-hero-buttons .btn { flex: 1 1 auto; }
+  .hire-proof-item { padding: 20px 18px; }
+  .hire-table th, .hire-table td { padding: 12px 14px; }
+}
+
+/* 窄屏：三列散文表格在手机上塞不下 —— 行首单元格的 `white-space: nowrap`
+   会把表格的 min-content 顶到 444px（英文文案），超出容器后既产生横向滚动、
+   又把中间的 Scope 列挤成一行一个词。这里改为堆叠卡片：隐藏表头，
+   行首 `<th scope="row">` 作卡片标题，其余单元格用 `data-label` 显示字段名。 */
+@media (max-width: 640px) {
+  .hire-table-wrap { overflow-x: visible; }
+  .hire-table,
+  .hire-table tbody,
+  .hire-table tr,
+  .hire-table th,
+  .hire-table td { display: block; width: auto; }
+  .hire-table thead { display: none; }
+  .hire-table tbody tr { padding: 18px 18px 20px; }
+  .hire-table tbody tr + tr { border-top: 1px solid var(--line); }
+  /* 堆叠后单元格纵向排列，行间分隔改由 tr 的边框承担，需盖掉单元格的 border-top */
+  .hire-page .hire-table tbody tr + tr th,
+  .hire-page .hire-table tbody tr + tr td { border-top: 0; }
+  .hire-table tbody th {
+    white-space: normal; padding: 0 0 12px;
+    font-size: 15.5px; line-height: 1.5;
+  }
+  .hire-table tbody td { padding: 0; }
+  .hire-table tbody td + td { margin-top: 12px; }
+  .hire-table tbody td::before {
+    content: attr(data-label);
+    display: block; margin-bottom: 4px;
+    font-size: 11.5px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted);
+  }
+}

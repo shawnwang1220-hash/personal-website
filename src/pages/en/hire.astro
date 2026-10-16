@@ -1,0 +1,210 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import HireForm from "../../components/HireForm.astro";
+import { SITE } from "../../site.config";
+import { getSiteCopy, getUiCopy } from "../../i18n/ui";
+
+const lang = "en" as const;
+const t = getUiCopy(lang).hirePage;
+const copy = getSiteCopy(lang);
+
+/** 端点未配置时不渲染表单 —— 主 CTA 顺势降级为发邮件，不留提交不了的按钮 */
+const hasForm = SITE.hireEndpoint.length > 0;
+
+/**
+ * 结构化数据。与中文页同构，但 name / description / 问答文本取英文版本 ——
+ * 结构化数据必须与页面可见语言一致。
+ */
+const PERSON_ID = `${SITE.url}/#person`;
+const serviceLd = {
+  "@type": "Service",
+  "@id": `${SITE.url}/en/hire/#service`,
+  name: copy.author.role,
+  description: t.pageDescription,
+  serviceType: t.services.map((s) => s.line),
+  provider: { "@id": PERSON_ID },
+};
+const faqLd = {
+  "@type": "FAQPage",
+  "@id": `${SITE.url}/en/hire/#faq`,
+  mainEntity: t.faq.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+---
+
+<BaseLayout
+  lang={lang}
+  title={t.pageTitle}
+  description={t.pageDescription}
+  jsonLd={[serviceLd, faqLd]}
+>
+  <div class="hire-page">
+  {/* Hero */}
+  <section class="section container hire-hero">
+    <h1 class="hire-hero-title">{t.heroTitle}</h1>
+    <p class="hire-hero-lead">{t.heroLead}</p>
+    <div class="hire-hero-buttons">
+      <a
+        class="btn btn-primary"
+        href={hasForm ? "#hire-form" : `mailto:${SITE.hireEmail}`}
+        >{t.heroCtaPrimary}</a
+      >
+      <a class="btn btn-ghost" href={`mailto:${SITE.hireEmail}`}>{t.heroCtaSecondary}</a>
+    </div>
+    <p class="hire-hero-trust">{t.heroTrust.join(" · ")}</p>
+  </section>
+
+  {/* Pain points */}
+  <section class="section container">
+    <h2 class="section-title">{t.painsTitle}</h2>
+    <ul class="hire-pains">
+      {
+        t.pains.map((p) => (
+          <li>
+            <strong>{p.problem}</strong>
+            <span>{p.detail}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  {/* Services */}
+  <section class="section container">
+    <h2 class="section-title">{t.servicesTitle}</h2>
+    <p class="section-sub">{t.servicesLead}</p>
+    <div class="hire-table-wrap">
+      <table class="hire-table">
+        <thead>
+          <tr>
+            <th scope="col">{t.servicesHead.line}</th>
+            <th scope="col">{t.servicesHead.scope}</th>
+            <th scope="col">{t.servicesHead.deliverable}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            t.services.map((s) => (
+              <tr>
+                <th scope="row">{s.line}</th>
+                <td data-label={t.servicesHead.scope}>{s.scope}</td>
+                <td data-label={t.servicesHead.deliverable}>{s.deliverable}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {/* Proof */}
+  <section class="section container">
+    <h2 class="section-title">{t.proofTitle}</h2>
+    <p class="section-sub">{t.proofLead}</p>
+    <div class="hire-proof">
+      {
+        t.proof.map((item) => (
+          <article class="hire-proof-item">
+            <h3>{item.title}</h3>
+            <p>{item.body}</p>
+            {item.linkHref && (
+              <a class="hire-proof-link" href={item.linkHref}>
+                {item.linkLabel}
+              </a>
+            )}
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  {/* Engagement models + process */}
+  <section class="section container">
+    <h2 class="section-title">{t.modelsTitle}</h2>
+    <div class="hire-table-wrap">
+      <table class="hire-table">
+        <thead>
+          <tr>
+            <th scope="col">{t.modelsHead.label}</th>
+            <th scope="col">{t.modelsHead.project}</th>
+            <th scope="col">{t.modelsHead.retainer}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            t.models.map((m) => (
+              <tr>
+                <th scope="row">{m.label}</th>
+                <td data-label={t.modelsHead.project}>{m.project}</td>
+                <td data-label={t.modelsHead.retainer}>{m.retainer}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="hire-steps-title">{t.stepsTitle}</h3>
+    <div class="hire-steps">
+      {
+        t.steps.map((step, i) => (
+          <div class="hire-step">
+            <div class="hire-step-num">{String(i + 1).padStart(2, "0")}</div>
+            <h3>{step.title}</h3>
+            <p>{step.text}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  {/* Form */}
+  {
+    hasForm && (
+      <section class="section container">
+        <h2 class="section-title">{t.form.title}</h2>
+        <p class="section-sub">{t.form.lead}</p>
+        <HireForm lang={lang} />
+      </section>
+    )
+  }
+
+  {/* FAQ */}
+  <section class="section container">
+    <h2 class="section-title">{t.faqTitle}</h2>
+    <div class="hire-faq">
+      {
+        t.faq.map((item) => (
+          <div class="hire-faq-item">
+            <h3>{item.q}</h3>
+            <p>{item.a}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  {/* Contact fallback */}
+  <section class="section container">
+    <div class="hire-contact card">
+      <h2>{t.contactTitle}</h2>
+      <p>{t.contactLead}</p>
+      <ul class="hire-contact-list">
+        <li>
+          <span class="hire-contact-label">Email</span>
+          <a href={`mailto:${SITE.hireEmail}`}>{SITE.hireEmail}</a>
+        </li>
+        <li>
+          <span class="hire-contact-label">LinkedIn</span>
+          <a href={SITE.social.linkedin} rel="me noopener" target="_blank">
+            {SITE.social.linkedin.replace(/^https?:\/\/(www\.)?/, "")}
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+  </div>
+</BaseLayout>

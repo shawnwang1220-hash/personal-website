@@ -93,6 +93,8 @@ ${enCases.map((c) => entry(c.data.title, abs(`/en/case/${c.id}`), c.data.summary
 - [Experience](${abs("/en/experience/")}): 英文 —— 同上
 - [案例](${abs("/case/")}): 中文 —— 项目案例列表（问题/做法/结果·学到）
 - [Case studies](${abs("/en/case/")}): 英文 —— 同上
+- [合作方式](${abs("/hire/")}): 中文 —— 可承接的服务范围（GA4/GTM 追踪、营销自动化与 CRM、海外获客）、合作流程与联系方式
+- [Work with me](${abs("/en/hire/")}): 英文 —— 同上
 - [RSS](${abs("/rss.xml")}): 中文全文订阅源
 
 ## Optional

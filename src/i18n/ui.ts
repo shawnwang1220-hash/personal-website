@@ -91,6 +91,8 @@ const SITE_COPY_EN: SiteCopy = {
     { label: "Experience", href: "/en/experience/" },
     { label: "Case", href: "/en/case/" },
     { label: "Résumé", href: "/en/resume/" },
+    /* 与 site.config.ts 的中文 nav 成对：cta 项在 Header 里渲染为实心按钮 */
+    { label: "Hire me", href: "/en/hire/", cta: true },
   ],
 };
 
@@ -139,6 +141,58 @@ export interface UiCopy {
     /** 占位邮箱状态下按钮下方的说明 */
     note: string;
     services: readonly string[];
+  };
+  /**
+   * /hire 服务页整页文案。
+   *
+   * 与上面的 hire 分开：hire 是「一句话 + 一个按钮」的 CTA 区块（首页底部在用），
+   * hirePage 是整页内容。字段按页面区块顺序排列，视图里只做遍历与拼装，不出现字面量。
+   */
+  hirePage: {
+    pageTitle: string;
+    pageDescription: string;
+    heroTitle: string;
+    heroLead: string;
+    heroCtaPrimary: string;
+    heroCtaSecondary: string;
+    /** 首屏信任点，一行内用 · 连接 */
+    heroTrust: readonly string[];
+    painsTitle: string;
+    pains: readonly { problem: string; detail: string }[];
+    servicesTitle: string;
+    servicesLead: string;
+    servicesHead: { line: string; scope: string; deliverable: string };
+    services: readonly { line: string; scope: string; deliverable: string }[];
+    proofTitle: string;
+    proofLead: string;
+    /** linkLabel / linkHref 可缺省 —— 没有可点的页面时只呈文字，不留死链 */
+    proof: readonly { title: string; body: string; linkLabel?: string; linkHref?: string }[];
+    modelsTitle: string;
+    modelsHead: { label: string; project: string; retainer: string };
+    models: readonly { label: string; project: string; retainer: string }[];
+    stepsTitle: string;
+    steps: readonly { title: string; text: string }[];
+    faqTitle: string;
+    faq: readonly { q: string; a: string }[];
+    contactTitle: string;
+    contactLead: string;
+    form: {
+      title: string;
+      lead: string;
+      nameLabel: string;
+      namePlaceholder: string;
+      contactLabel: string;
+      contactPlaceholder: string;
+      messageLabel: string;
+      messagePlaceholder: string;
+      submit: string;
+      submitting: string;
+      successTitle: string;
+      successText: string;
+      error: string;
+      privacy: string;
+      fallback: string;
+    };
   };
   experience: {
     pageTitle: string;
@@ -231,6 +285,122 @@ const UI_ZH: UiCopy = {
     cta: "Hire me",
     note: "（占位邮箱：在 site.config.ts 配置 hireEmail 后启用）",
     services: ["GA4 / GTM / Server-Side Tagging", "CRM 线索管理", "广告投放与归因", "AI 营销自动化"],
+  },
+  hirePage: {
+    pageTitle: "合作方式",
+    pageDescription:
+      "GA4/GTM 追踪体系、营销自动化与 CRM、海外 B2B 获客 —— 项目制或月度顾问。看看我能接什么、怎么合作。",
+    heroTitle: "营销数据与获客链路，我帮你搭成能跑的系统",
+    heroLead:
+      "7 年 B2B 数字营销经验，专注 GA4/GTM 追踪体系、营销自动化与 CRM、海外 B2B 获客。项目制或月度顾问，按你的节奏开始。",
+    heroCtaPrimary: "说说你的需求",
+    heroCtaSecondary: "先发邮件",
+    heroTrust: [
+      "现任独立顾问",
+      "前 hireEZ Senior Marketing Operation",
+      "曾主导海外数字营销体系 0-1 建设",
+    ],
+    painsTitle: "这些场景，你可能正在经历",
+    pains: [
+      { problem: "广告花出去，说不清哪个渠道带来线索", detail: "GA4 没配好，转化事件缺失，报表对不上账。" },
+      { problem: "官网有流量，表单没线索", detail: "转化链路断档，用户在 CTA 到表单之间流失。" },
+      { problem: "CRM 和营销平台各跑各的", detail: "Salesforce、Pardot 买了不会用，线索路由靠人工转发。" },
+      { problem: "多渠道数据割裂", detail: "Google Ads、LinkedIn Ads 各自为政，归因说不清，优化靠猜。" },
+    ],
+    servicesTitle: "我接什么",
+    servicesLead: "三条服务线，都落在可交付的东西上。",
+    servicesHead: { line: "服务线", scope: "服务内容", deliverable: "交付物" },
+    services: [
+      {
+        line: "营销数据与 Tracking",
+        scope:
+          "GA4 迁移与重建；事件、转化与回传追踪；Server-Side Tagging；归因体系",
+        deliverable: "可直接使用的 GA4/GTM 配置；广告—官网—CRM 数据闭环；配置文档",
+      },
+      {
+        line: "营销自动化与 CRM",
+        scope:
+          "Lead Routing 设计；线索培育流程；表单与数据同步；Salesforce / Pardot / 6sense 跨系统协同",
+        deliverable: "线索流转与培育流程上线；CRM 对象、流程与报表配置",
+      },
+      {
+        line: "海外获客体系",
+        scope: "Google Ads / LinkedIn Ads 体系规划；官网转化链路优化；Marketing Stack 选型与搭建",
+        deliverable: "投放与转化链路方案；Marketing Stack 部署清单",
+      },
+    ],
+    proofTitle: "做过什么",
+    proofLead: "只列事实，细节可以现场追问。",
+    proof: [
+      {
+        title: "hireEZ：GA4/GTM 追踪体系",
+        body: "全球 B2B AI 招聘 SaaS，负责北美及全球市场 Marketing Operations；主导 Universal Analytics 向 GA4 迁移，规划网站事件、广告归因与营销数据采集标准。",
+      },
+      {
+        title: "Pardot / Salesforce：线索路由与 CRM 闭环",
+        body: "设计营销自动化与 Lead Nurture 流程，建立线索培育、客户分层与自动化触达机制，打通 Marketing 与 Sales 的线索协同。",
+        linkLabel: "相关文章：线索培育实践",
+        linkHref: "/posts/pardot-nurture/",
+      },
+      {
+        title: "GA4 page_view 丢失排查（自有项目）",
+        body: "自己博客出的问题自己查：从 GTM 配置到上报链路逐段定位，复盘写成公开文章。",
+        linkLabel: "文章：GA4 page_view 丢失排查",
+        linkHref: "/posts/ga4-pageview-missing/",
+      },
+    ],
+    modelsTitle: "怎么合作",
+    modelsHead: { label: "对比项", project: "项目制", retainer: "月度顾问" },
+    models: [
+      {
+        label: "适合",
+        project: "目标明确的一次性工作：搭建、迁移、排查",
+        retainer: "需求滚动的持续优化",
+      },
+      {
+        label: "例子",
+        project: "GA4 重建、追踪体系搭建、丢失排查",
+        retainer: "追踪维护、数据报表、线索培育迭代",
+      },
+      { label: "周期", project: "按项目评估，书面确认后启动", retainer: "按月合作，随时可结束" },
+      { label: "报价", project: "按需求评估后提供报价单", retainer: "按需求评估后提供报价单" },
+    ],
+    stepsTitle: "流程",
+    steps: [
+      { title: "沟通需求", text: "先讲清现状和目标 —— 邮件或通话都行。" },
+      { title: "评估与报价", text: "明确范围、周期和价格，书面确认后开始。" },
+      {
+        title: "执行与交付",
+        text: "按周同步进展；配置、方案、文档一并交付，你的团队能直接接手。",
+      },
+    ],
+    faqTitle: "你可能想问",
+    faq: [
+      { q: "签合同 / 保密协议吗？", a: "可以。合同和保密协议按甲方要求来，都能配合。" },
+      {
+        q: "远程协作怎么进行？",
+        a: "base 在北京（GMT+8），短期项目可以跨时区工作；协作工具用你们现有的，常用工具都能配合；同步频率按需求定。",
+      },
+    ],
+    contactTitle: "直接联系我",
+    contactLead: "也可以直接发邮件或加 LinkedIn —— 哪个方便用哪个。",
+    form: {
+      title: "说说你的需求",
+      lead: "填三句话就行：你是谁、怎么找你、要解决什么问题。我会在 2 个工作日内回复。",
+      nameLabel: "姓名",
+      namePlaceholder: "怎么称呼",
+      contactLabel: "联系方式",
+      contactPlaceholder: "邮箱或微信，哪个方便用哪个",
+      messageLabel: "需求",
+      messagePlaceholder: "现状 + 目标，例如：GA4 数据不准，想重建追踪体系",
+      submit: "发送需求",
+      submitting: "发送中…",
+      successTitle: "已收到。",
+      successText: "我会在 2 个工作日内回复。",
+      error: "没发出去，可能是网络问题。",
+      privacy: "信息仅用于回复本次咨询，不会转给第三方。",
+      fallback: "也可以直接发邮件：",
+    },
   },
   experience: {
     pageTitle: "经历",
@@ -325,6 +495,153 @@ const UI_EN: UiCopy = {
       "Paid ads & attribution",
       "AI marketing automation",
     ],
+  },
+  hirePage: {
+    pageTitle: "Work with me",
+    pageDescription:
+      "GA4/GTM tracking, marketing automation and CRM, global B2B demand generation — as a project or a monthly retainer. What I take on, and how we'd work together.",
+    heroTitle: "Marketing data and demand generation, built to run",
+    heroLead:
+      "7 years in B2B digital marketing, focused on GA4/GTM tracking, marketing automation and CRM, and global demand generation. Project-based or monthly retainer — at your pace.",
+    heroCtaPrimary: "Tell me what you need",
+    heroCtaSecondary: "Email me first",
+    heroTrust: [
+      "Independent consultant",
+      "Former Senior Marketing Operation at hireEZ",
+      "Led a global marketing stack from 0 to 1",
+    ],
+    painsTitle: "These probably sound familiar",
+    pains: [
+      {
+        problem: "You can't tell which channel brought the lead",
+        detail: "GA4 isn't set up properly, conversion events are missing, and the numbers don't add up.",
+      },
+      {
+        problem: "Traffic comes in, but no leads come out",
+        detail: "The conversion path breaks somewhere between the CTA and the form.",
+      },
+      {
+        problem: "Your CRM and your marketing platform don't talk",
+        detail: "Salesforce and Pardot are sitting unused, so lead routing is manual.",
+      },
+      {
+        problem: "Channel data is fragmented",
+        detail: "Google Ads and LinkedIn Ads each tell their own story, attribution is guesswork, and optimisation follows.",
+      },
+    ],
+    servicesTitle: "What I take on",
+    servicesLead: "Three service lines, each ending in something concrete you can keep.",
+    servicesHead: { line: "Service line", scope: "Scope", deliverable: "What you get" },
+    services: [
+      {
+        line: "Marketing data & tracking",
+        scope:
+          "GA4 migration and rebuild; event, conversion and offline conversion tracking; server-side tagging; attribution",
+        deliverable: "A working GA4/GTM setup; an ads → site → CRM data loop; configuration docs",
+      },
+      {
+        line: "Marketing automation & CRM",
+        scope:
+          "Lead routing design; nurture flows; form and data sync; Salesforce / Pardot / 6sense integration",
+        deliverable: "Lead routing and nurture flows in production; CRM objects, processes and reports",
+      },
+      {
+        line: "Global demand generation",
+        scope:
+          "Google Ads / LinkedIn Ads programme design; website conversion path; marketing stack selection and setup",
+        deliverable: "A paid and conversion plan; a marketing stack deployment checklist",
+      },
+    ],
+    proofTitle: "What I've built",
+    proofLead: "Just the facts — ask me for the detail.",
+    proof: [
+      {
+        title: "hireEZ: GA4/GTM tracking system",
+        body: "Global B2B AI recruiting SaaS. Ran marketing operations for North America and global markets, led the migration from Universal Analytics to GA4, and defined the standard for site events, ad attribution and marketing data collection.",
+      },
+      {
+        title: "Pardot / Salesforce: lead routing and a closed CRM loop",
+        body: "Designed the marketing automation and lead nurture flows — nurturing, segmentation and automated outreach — connecting marketing and sales on one lead flow.",
+        linkLabel: "Related post: lead nurture in practice",
+        linkHref: "/en/posts/pardot-nurture/",
+      },
+      {
+        title: "Tracking down a lost GA4 page_view (own project)",
+        body: "My own blog, my own bug: traced it from the GTM configuration through the reporting path, then wrote up what I found.",
+        linkLabel: "Post: the missing GA4 page_view",
+        linkHref: "/en/posts/ga4-pageview-missing/",
+      },
+    ],
+    modelsTitle: "How we'd work together",
+    modelsHead: { label: "Compare", project: "Project", retainer: "Monthly retainer" },
+    models: [
+      {
+        label: "Best for",
+        project: "One-off work with a clear goal: setup, migration, diagnosis",
+        retainer: "Continuous improvement with rolling needs",
+      },
+      {
+        label: "Examples",
+        project: "GA4 rebuild, tracking setup, lost-data diagnosis",
+        retainer: "Tracking maintenance, reporting, nurture iteration",
+      },
+      {
+        label: "Duration",
+        project: "Scoped per project, starts after written sign-off",
+        retainer: "Month to month, cancel any time",
+      },
+      {
+        label: "Pricing",
+        project: "Quoted after scoping",
+        retainer: "Quoted after scoping",
+      },
+    ],
+    stepsTitle: "Process",
+    steps: [
+      {
+        title: "Scope the work",
+        text: "Tell me where you are and what you want to fix — email or a call, either works.",
+      },
+      {
+        title: "Quote and agree",
+        text: "We settle scope, timeline and price in writing before anything starts.",
+      },
+      {
+        title: "Build and hand over",
+        text: "Weekly progress updates, then configs, documentation and a walkthrough so your team can take it from there.",
+      },
+    ],
+    faqTitle: "You might be wondering",
+    faq: [
+      {
+        q: "Do you sign contracts and NDAs?",
+        a: "Yes. Contracts and NDAs are whatever the client requires — your templates are fine.",
+      },
+      {
+        q: "How does remote collaboration work?",
+        a: "I'm based in Beijing (GMT+8) and can work across time zones for short projects. I'll use whatever tools your team already has, and we'll set the sync cadence to suit the work.",
+      },
+    ],
+    contactTitle: "Get in touch",
+    contactLead: "Or just email me, or reach me on LinkedIn — whichever is easier.",
+    form: {
+      title: "Tell me what you need",
+      lead: "Three lines is enough: who you are, how to reach you, and what you want to fix. I reply within 2 working days.",
+      nameLabel: "Name",
+      namePlaceholder: "What should I call you",
+      contactLabel: "Contact",
+      contactPlaceholder: "Email or WeChat — whichever you prefer",
+      messageLabel: "What you need",
+      messagePlaceholder:
+        'Where you are and where you want to be — e.g. "GA4 numbers do not add up, we want to rebuild tracking"',
+      submit: "Send",
+      submitting: "Sending…",
+      successTitle: "Got it.",
+      successText: "I'll get back to you within 2 working days.",
+      error: "That didn't go through — possibly a network issue.",
+      privacy: "Used only to reply to this enquiry. Never shared with third parties.",
+      fallback: "You can also email me directly:",
+    },
   },
   experience: {
     pageTitle: "Experience",

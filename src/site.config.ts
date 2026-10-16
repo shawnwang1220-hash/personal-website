@@ -88,6 +88,11 @@ export const SITE = {
     { label: "经历", href: "/experience/" },
     { label: "案例", href: "/case/" },
     { label: "简历", href: "/resume/" },
+    /**
+     * cta: true → Header 把它渲染成导航右侧的实心主按钮（不占文字链位）。
+     * 英文导航是 i18n/ui.ts 里独立定义的 SITE_COPY_EN.nav，新增项要两边一起加。
+     */
+    { label: "Hire me", href: "/hire/", cta: true },
   ],
 
   /** 首页数据卡（中文；英文镜像在 i18n/ui.ts 的 SITE_COPY_EN.stats） */
@@ -104,6 +109,15 @@ export const SITE = {
    * （your@* / *@example.com）则降级为不可点按钮 + 说明文字。
    */
   hireEmail: "work@tianxu.uk",
+
+  /**
+   * /hire 表单的提交端点 —— 独立 Worker（源码在仓库 worker/hire-api/）。
+   * 部署 Worker 后填入完整 URL，例如 "https://api.tianxu.uk/" 或
+   * "https://hire-api.<你的子域>.workers.dev/"。
+   * 留空 → /hire 页不渲染表单，只保留邮箱等兜底联系方式
+   * （与 hireEmail 的占位降级同一思路：宁可少一个入口，也不留一个提交不了的表单）。
+   */
+  hireEndpoint: "",
 
   /**
    * 简历 PDF 的站点路径（文件放 public/ 下，填 "/xxx.pdf"）。

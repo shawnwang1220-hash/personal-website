@@ -1,0 +1,173 @@
+---
+import { SITE } from "../site.config";
+import { getUiCopy } from "../i18n/ui";
+import type { Lang } from "../i18n/config";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = getUiCopy(lang).hirePage.form;
+
+/**
+ * /hire 的联系表单。
+ *
+ * 三个刻意的选择：
+ * 1. 真 <form>，不用 iframe、不引第三方 SDK —— 样式与校验都由本站掌握；
+ * 2. 同时保留 method/action（无 JS 也能提交）与 fetch 提交（有 JS 时不跳页）；
+ *    所以不能加 novalidate —— 原生校验是两条路径共用的第一道关；
+ * 3. 提交成功后 push 一个 dataLayer 事件，供 GTM 配成 GA4 转化。
+ *
+ * 端点为空时不渲染表单：宁可不显示，也不给一个提交不了的框（页面底部仍有邮箱兜底）。
+ */
+const endpoint = SITE.hireEndpoint;
+---
+
+{
+  endpoint && (
+    <div class="hire-form-wrap">
+      <form class="hire-form" id="hire-form" method="post" action={endpoint}>
+        <div class="hire-field">
+          <label for="hire-name">{t.nameLabel}</label>
+          <input
+            id="hire-name"
+            name="name"
+            type="text"
+            required
+            maxlength="100"
+            autocomplete="name"
+            placeholder={t.namePlaceholder}
+          />
+        </div>
+
+        <div class="hire-field">
+          <label for="hire-contact">{t.contactLabel}</label>
+          <input
+            id="hire-contact"
+            name="contact"
+            type="text"
+            required
+            maxlength="200"
+            placeholder={t.contactPlaceholder}
+          />
+        </div>
+
+        <div class="hire-field">
+          <label for="hire-message">{t.messageLabel}</label>
+          <textarea
+            id="hire-message"
+            name="message"
+            required
+            rows="5"
+            maxlength="5000"
+            placeholder={t.messagePlaceholder}
+          />
+        </div>
+
+        <button
+          class="btn btn-primary"
+          type="submit"
+          data-label-idle={t.submit}
+          data-label-busy={t.submitting}
+        >
+          {t.submit}
+        </button>
+
+        {/* 提交失败时才显示；文案在 HTML 里，脚本只负责切换显隐 */}
+        <p class="hire-form-error" id="hire-form-error" role="alert" hidden>
+          {t.error}
+        </p>
+
+        <p class="hire-form-note">
+          {t.privacy}
+          <br />
+          {t.fallback}{" "}
+          <a href={`mailto:${SITE.hireEmail}`}>{SITE.hireEmail}</a>
+        </p>
+      </form>
+
+      <div class="hire-form-done" id="hire-form-done" role="status" hidden>
+        <h3>{t.successTitle}</h3>
+        <p>{t.successText}</p>
+        <p class="hire-form-note">
+          {t.fallback}{" "}
+          <a href={`mailto:${SITE.hireEmail}`}>{SITE.hireEmail}</a>
+        </p>
+      </div>
+    </div>
+  )
+}
+
+<script is:inline>
+  (function () {
+    var form = document.getElementById("hire-form");
+    if (!form) return;
+
+    var done = document.getElementById("hire-form-done");
+    var error = document.getElementById("hire-form-error");
+    var submit = form.querySelector('button[type="submit"]');
+    var idleLabel = submit ? submit.dataset.labelIdle : "";
+    var busyLabel = submit ? submit.dataset.labelBusy : "";
+
+    var showDone = function () {
+      form.hidden = true;
+      if (done) done.hidden = false;
+      /* 供 GTM 配 GA4 转化事件；GTM loader 已建好 dataLayer，这里只补一个保险 */
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event: "hire_form_submit" });
+    };
+
+    /* 无 JS 提交路径会带着 ?sent=1 跳回来，这里把它还原成成功态 */
+    if (/[?&]sent=1(&|$)/.test(location.search)) showDone();
+
+    form.addEventListener("submit", function (event) {
+      /* 原生校验不过就交给浏览器自己提示，别抢在它前面发请求 */
+      if (!form.reportValidity()) {
+        event.preventDefault();
+        return;
+      }
+      event.preventDefault();
+
+      var payload = {
+        name: form.elements.name.value,
+        contact: form.elements.contact.value,
+        message: form.elements.message.value,
+      };
+
+      if (error) error.hidden = true;
+      if (submit) {
+        submit.disabled = true;
+        if (busyLabel) submit.textContent = busyLabel;
+      }
+
+      var reset = function () {
+        if (submit) {
+          submit.disabled = false;
+          if (idleLabel) submit.textContent = idleLabel;
+        }
+      };
+
+      fetch(form.action, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(function (res) {
+          return res
+            .json()
+            .catch(function () {
+              return {};
+            })
+            .then(function (body) {
+              if (!res.ok || !body.ok) throw new Error(body.error || "http_" + res.status);
+            });
+        })
+        .then(showDone)
+        .catch(function () {
+          if (error) error.hidden = false;
+          reset();
+        });
+    });
+  })();
+</script>
