@@ -14,7 +14,13 @@ const { lang = getLangFromPath(Astro.url.pathname), altPath } = Astro.props;
 const copy = getSiteCopy(lang);
 const t = getUiCopy(lang);
 const otherLang: Lang = lang === "zh" ? "en" : "zh";
+/** 目标语言元信息：hreflang / lang 描述的是链接目标与按钮文字的语言 */
 const otherMeta = LANG_META[otherLang];
+/**
+ * 当前语言元信息：切换按钮的文案与 aria 取这里（中文页显示 "EN"、英文页显示 "中"）。
+ * 取成 otherMeta 会让标签与跳转方向相反 —— 中文页显示「中」却跳去英文站。
+ */
+const langMeta = LANG_META[lang];
 
 /** 当前语言的首页地址：中文 "/"，英文 "/en/" */
 const homeHref = withTrailingSlash(lang === "en" ? "/en" : "/");
@@ -69,8 +75,8 @@ const isActive = (href: string) => {
         href={altHref}
         hreflang={otherMeta.htmlLang}
         lang={otherMeta.htmlLang}
-        aria-label={otherMeta.switchAria}
-        title={otherMeta.switchAria}>{otherMeta.switchShort}</a
+        aria-label={langMeta.switchAria}
+        title={langMeta.switchAria}>{langMeta.switchShort}</a
       >
 
       {/* 主题切换：太阳/月亮图标纯 CSS 显隐（亮→月，暗→日），
