@@ -4,7 +4,7 @@ import sitemap from "@astrojs/sitemap";
 
 export default defineConfig({
   // sitemap / canonical / RSS 的绝对地址来源
-  site: "https://blog.tianxu.uk",
+  site: "https://tianxu.uk",
 
   // 中英双语：中文为默认语言、不带路径前缀（保持既有 URL 不变）；
   // 英文挂在 /en 下。页面是真·镜像目录（src/pages/en/），这里只做声明。

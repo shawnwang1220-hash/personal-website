@@ -27,7 +27,7 @@ import { join, relative, resolve, dirname } from "node:path";
 
 // ─────────────────────────── 配置 ───────────────────────────
 
-const SITE = "https://blog.tianxu.uk";
+const SITE = "https://tianxu.uk";
 const DIST = resolve(
   process.cwd(),
   (process.argv.find((a) => a.startsWith("--dir=")) ?? "--dir=dist").slice("--dir=".length)

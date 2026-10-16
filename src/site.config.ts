@@ -3,7 +3,7 @@
  */
 export const SITE = {
   /** 部署后的正式域名，用于 sitemap / canonical / RSS 的绝对地址 */
-  url: "https://blog.tianxu.uk",
+  url: "https://tianxu.uk",
 
   /** 站点名称（用于 og:site_name、RSS、JSON-LD） */
   title: "王天旭 · 数字营销与 MarTech",

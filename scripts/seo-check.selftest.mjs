@@ -22,7 +22,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
 const TMP = join(ROOT, "dist-selftest");
 const CHECK = join(ROOT, "scripts", "seo-check.mjs");
-const SITE = "https://blog.tianxu.uk";
+const SITE = "https://tianxu.uk";
 
 if (!existsSync(DIST)) {
   console.error(`产物目录不存在：${DIST}\n先跑 npm run build。`);
