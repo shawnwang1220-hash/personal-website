@@ -74,6 +74,10 @@ ${en.map((p) => entry(p.data.title, abs(`/en/posts/${p.id}`), p.data.description
 - [首页](${abs("/")}): 站点入口，含个人简介、技能栈与最新文章
 - [全部文章](${abs("/posts/")}): 中文文章索引
 - [All posts](${abs("/en/posts/")}): 英文文章索引
+- [经历](${abs("/experience/")}): 中文 —— 工作经历时间线（含各段职责要点）
+- [Experience](${abs("/en/experience/")}): 英文 —— 同上
+- [案例](${abs("/case/")}): 中文 —— 项目案例列表（背景/方案/结果）
+- [Case studies](${abs("/en/case/")}): 英文 —— 同上
 - [RSS](${abs("/rss.xml")}): 中文全文订阅源
 
 ## Optional

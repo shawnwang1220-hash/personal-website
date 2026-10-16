@@ -338,6 +338,14 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
   overflow: auto; margin: 0 0 1em; font-size: 13.5px; line-height: 1.6;
 }
 .markdown-body pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+/* shiki 双主题切换：挂本站 [data-theme="dark"] 根选择器（与全站主题机制对齐，
+  不用 prefers-color-scheme）。span 的 color 是 shiki 内联硬编码的 light 值，
+   dark 组只声明了变量，故以 !important 覆盖；纯文本 token 在 pre 上直接继承。 */
+[data-theme="dark"] .markdown-body pre.astro-code {
+  background-color: var(--shiki-dark-bg) !important;
+  color: var(--shiki-dark) !important;
+}
+[data-theme="dark"] .markdown-body pre.astro-code span { color: var(--shiki-dark) !important; }
 .markdown-body hr { border: none; border-top: 1px solid var(--line); margin: 1.8em 0; }
 .markdown-body img { max-width: 100%; border-radius: var(--radius-sm); display: block; margin: 1em 0; }
 /* 宽表格在自身容器内横向滚动，不撑破页面 */

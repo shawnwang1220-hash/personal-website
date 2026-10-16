@@ -42,7 +42,13 @@ export default defineConfig({
 
   markdown: {
     shikiConfig: {
-      theme: "github-light",
+      // 双主题：shiki 按 light/dark 输出两套 CSS 变量（--shiki-light* / --shiki-dark*），
+      // 默认用 light 组；深色下的切换规则在 global.css 挂本站 [data-theme="dark"]
+      // 根选择器（与全站主题机制对齐，而非 prefers-color-scheme）。
+      themes: {
+        light: "github-light",
+        dark: "github-dark",
+      },
       wrap: true,
     },
   },

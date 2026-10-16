@@ -8,7 +8,8 @@
 
 ## 分支与部署
 
-**唯一活跃分支是 `main`。** 推送到 `main` 即由 Cloudflare Pages 自动构建并部署到 blog.tianxu.uk。
+**部署唯一入口是 `main`。** 推送到 `main` 即由 Cloudflare Pages 自动构建并部署到 blog.tianxu.uk。
+**但功能开发不要直推 `main`** —— 一律切分支开发、完成后走 PR 合并（本项目纪律）。
 （CF Pages 上该仓库也会为其他分支生成 preview 部署，用于预览改动，属正常行为。）
 
 > ### ⚠️ `gh-pages-test` 分支已废弃（2026-09-17）
@@ -73,15 +74,42 @@ tags: ["ga4", "marketing"]
 
 ## 改站点信息
 
-`src/site.config.ts`：站点标题、作者、社交链接、导航、GTM 容器 ID。**邮箱与手机号默认留空**，填了才会显示在简历页（Cloudflare 会自动做 Email Obfuscation 保护）。
+`src/site.config.ts` 是全局配置唯一真源：站点标题、作者、社交链接、导航（`nav`）、GTM 容器 ID、首页数据卡（`stats`）、Hire 邮箱（`hireEmail`）、简历 PDF 路径（`resumePdf`）。
 
-## 打印简历
+- `hireEmail`：首页 Hire CTA 的 mailto 邮箱；填 `your@*` / `*@example.com` 占位值时按钮自动降级为不可点（防死链）
+- `resumePdf`：见下节
+- **邮箱与手机号默认留空**，填了才会显示在简历页（Cloudflare 会自动做 Email Obfuscation 保护）
 
-`/resume` 与 `/en/resume` 页面带「下载 / 打印 PDF」按钮。打印样式在 `src/styles/global.css` 的 `@media print` 块。
+## 简历 PDF
+
+`/resume` 与 `/en/resume` 页面底部的按钮由 `resumePdf` 控制：
+
+- **留空**（当前状态）：只显示「下载 / 打印 PDF」按钮 —— 走浏览器打印导出 PDF，无需维护文件
+- **填路径**（如 `"/resume.pdf"`）：显示「下载 PDF」直链按钮 + 「打印」按钮；PDF 文件需自行放到 `public/` 下
+
+打印样式在 `src/styles/global.css` 的 `@media print` 块。
 
 > ⚠️ **不要给 `.r-section` 加 `break-inside: avoid`**。「工作经历」整块高度远超一页，
 > 强制「内部不断页」会把它整体推到下一页、留下整页空白。分页控制只作用在
 > 「单条 bullet / 单条教育经历」这一级，`.job` 允许跨页。
+
+## 待站长补充（占位清单）
+
+以下内容是重设计时放的占位/种子数据，上线前请逐项核对替换：
+
+1. **`resumePdf` 为空** —— 上传简历 PDF 到 `public/` 后在 `site.config.ts` 填路径（见上节）
+2. **`src/content/cases/`（与 `cases/en/`）共 3 条占位案例** —— 结果数字均为 `+00%`，需替换为真实项目；详情页按「背景 → 问题 → 方案 → 结果 → 工具栈」五段写
+3. **`src/content/experience/`（与 `experience/en/`）共 3 条种子经历** —— 事实取自原简历页，请核对表述；增删条目后无需改代码，时间线自动更新
+4. **`hireEmail` 已填 `work@tianxu.uk`** —— 如换商务邮箱只改这一处
+
+## 内容集合
+
+除文章外，站点还有两个集合驱动页面（均需中英成对、同名同 id）：
+
+- `src/content/experience/` ↔ `experience/en/`：`/experience` 时间线，frontmatter 为 `company/role/start/end/summary?/highlights[]`，正文折叠进 `<details>`
+- `src/content/cases/` ↔ `cases/en/`：`/case` 列表 + `/case/[slug]` 详情，frontmatter 为 `title/tags[]/summary/result/cover?/date`
+
+> `src/data/about.md` / `about.en.md` 是旧首页「关于我」的遗留文件，已不被任何页面引用（内容并入 Hero），保留仅为存档，可删。
 
 ## 部署到 Cloudflare Pages
 
@@ -99,16 +127,19 @@ tags: ["ga4", "marketing"]
 
 ```
 src/
-  components/        Header / Footer / PostCard
+  components/        Header / Footer / PostCard / SocialLinks / Hero / StatCard /
+                     TimelineItem / CaseCard / Tag / HireCTA
   content/posts/     中文文章 .md
   content/posts/en/  英文文章 .md（与中文同名）
-  data/about.md      首页「关于我」（中文）
-  data/about.en.md   首页「关于我」（英文）
+  content/experience/   工作经历 .md（/experience 时间线，中英成对）
+  content/cases/     项目案例 .md（/case 列表与详情，中英成对）
+  data/about.md      旧首页「关于我」遗留（已无页面引用，可删）
+  data/about.en.md   同上（英文）
   i18n/              config（语言与路径推导）/ ui（文案字典）/ tags（标签中英映射）
   layouts/           BaseLayout（head / SEO / GTM / hreflang / 深色模式）
-  pages/             index / posts / tags / resume / 404 / rss.xml
+  pages/             index / posts / tags / experience / case / resume / 404 / rss.xml
   pages/en/          英文站镜像页面
-  site.config.ts     站点配置（GTM ID / 作者 / 导航）
+  site.config.ts     站点配置（GTM ID / 作者 / 导航 / stats / hireEmail / resumePdf）
   styles/global.css  全站样式（含打印样式）
-public/              robots.txt / 头像 / favicon
+public/              robots.txt / 头像 / favicon / OG 图
 ```
