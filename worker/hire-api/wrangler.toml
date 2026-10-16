@@ -17,11 +17,15 @@ database_id = "REPLACE_WITH_D1_DATABASE_ID"
 NOTION_DATABASE_ID = "REPLACE_WITH_NOTION_DATABASE_ID"
 # 通知邮件收件人
 NOTIFY_TO = "work@tianxu.uk"
-# 发件地址。用 Resend 默认地址起步（此时收件人必须是 Resend 账号邮箱）；
-# 在 Resend 验证 tianxu.uk 后可改成 "hire@tianxu.uk" 之类
-FROM_EMAIL = "onboarding@resend.dev"
-# 允许提交的来源页
-ALLOWED_ORIGIN = "https://blog.tianxu.uk"
+# 发件地址。需先在 Resend 验证 tianxu.uk 域名（DNS 加 MX/TXT/DKIM 三条记录），
+# 否则 Resend 会 403：未验证域名只能用 onboarding@resend.dev，而那个地址只能
+# 投递到 Resend 账号注册邮箱。
+FROM_EMAIL = "hire@tianxu.uk"
+# 允许提交的来源页，**逗号分隔可多个**（src/index.ts 里 split 后逐个精确匹配）。
+# 主域迁到 tianxu.uk 后 blog.tianxu.uk 会 301 过去，但迁移完成前旧域仍是访客
+# 实际访问的域名 —— 只放行新域会让表单提交必然 403，故两个都列上。
+# 迁完确认无流量后再删掉旧域。
+ALLOWED_ORIGIN = "https://blog.tianxu.uk,https://tianxu.uk"
 
 # ── 敏感值走 Secret，不要写在这里 ──────────────────────────────────────
 #   npx wrangler secret put NOTION_TOKEN

@@ -15,6 +15,9 @@ dist-selftest/
 npm-debug.log*
 .env
 .env.*
+# wrangler 本地联调的密钥文件（NOTION_TOKEN / RESEND_API_KEY），绝不能提交
+.dev.vars
+.dev.vars.*
 
 # 编辑器与系统
 .DS_Store

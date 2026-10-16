@@ -36,6 +36,7 @@ interface Env {
   NOTION_DATABASE_ID: string;
   NOTIFY_TO: string;
   FROM_EMAIL: string;
+  /** 逗号分隔可配多个来源域（主域迁移期两个域都要放行） */
   ALLOWED_ORIGIN: string;
 }
 
@@ -143,16 +144,24 @@ async function sendNotification(env: Env, r: Submission): Promise<void> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const origin = request.headers.get("Origin") ?? "";
-    const allowed = env.ALLOWED_ORIGIN;
 
     /**
-     * Origin 白名单。注意它挡不住脚本直连（伪造 Origin 零成本），
-     * 作用只是不让别的网站把本站端点当成自己的表单后端。
+     * Origin 白名单，**支持逗号分隔多个**。主域迁移期要同时放行 blog.tianxu.uk
+     * 与 tianxu.uk：访客可能仍从旧域打开页面，只放行新域会让提交必然 403。
+     *
+     * 注意它挡不住脚本直连（伪造 Origin 零成本），作用只是不让别的网站把本站
+     * 端点当成自己的表单后端。
      * 本地预览（localhost / 127.0.0.1）一并放行，便于 wrangler dev 联调。
      * 因此这里不把「缺少 Origin」当作拒绝理由 —— curl 联调就没有这个头。
      */
+    const allowedOrigins = env.ALLOWED_ORIGIN.split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    /** 白名单首个：既做 403 响应头的兜底，也做无 JS 提交回跳的基址 */
+    const allowed = allowedOrigins[0] ?? "";
     const originOk =
-      origin === allowed || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+      allowedOrigins.includes(origin) ||
+      /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     const responseOrigin = originOk ? origin : allowed;
 
     if (request.method === "OPTIONS") {
@@ -198,7 +207,7 @@ export default {
     let backPath = "/hire/";
     try {
       const u = new URL(referer);
-      if (u.origin === allowed && /^\/(en\/)?hire\/?$/.test(u.pathname)) {
+      if (allowedOrigins.includes(u.origin) && /^\/(en\/)?hire\/?$/.test(u.pathname)) {
         backPath = `${u.pathname.replace(/\/+$/, "")}/`;
       }
     } catch {
