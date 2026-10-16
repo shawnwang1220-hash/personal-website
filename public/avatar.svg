@@ -1,12 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="王天旭头像">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6366f1"/>
-      <stop offset="1" stop-color="#0ea5e9"/>
-    </linearGradient>
-  </defs>
-  <rect width="120" height="120" rx="28" fill="url(#g)"/>
-  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle"
-        font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif"
-        font-size="52" font-weight="700" fill="#ffffff">王</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="160 40 360 360" width="512" height="512" role="img" aria-label="Tianxu Wang avatar">
+  <title>Tianxu Wang</title>
+  <rect x="160" y="40" width="360" height="360" fill="#A8B89A"/>
+  <rect x="321" y="290" width="38" height="56" fill="#E3B592"/>
+  <path d="M186 420 C186 356 252 338 301 330 L340 366 L379 330 C428 338 494 356 494 420 Z" fill="#343A55"/>
+  <path d="M297 328 L340 372 L383 328 L368 318 L340 348 L312 318 Z" fill="#C9D3E3"/>
+  <path d="M312 318 L340 348 L368 318 L340 312 Z" fill="#E3B592"/>
+  <ellipse cx="263" cy="216" rx="9" ry="19" fill="#E3B592"/>
+  <ellipse cx="417" cy="216" rx="9" ry="19" fill="#E3B592"/>
+  <path d="M265 190 C265 130 294 108 340 108 C386 108 415 130 415 190 L415 236 C415 278 386 314 340 320 C294 314 265 278 265 236 Z" fill="#F0C9A8"/>
+  <path d="M261 204 C251 144 270 96 304 84 C321 78 334 86 346 80 C372 76 402 88 418 116 C433 142 431 178 421 204 C417 180 410 162 400 152 C380 142 330 144 292 146 C276 154 268 174 261 204 Z" fill="#1C1C1E"/>
+  <path d="M292 182 Q310 174 328 177" stroke="#1C1C1E" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <path d="M352 177 Q370 174 388 182" stroke="#1C1C1E" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <ellipse cx="303" cy="213" rx="8" ry="4" fill="#1C1C1E"/>
+  <ellipse cx="377" cy="213" rx="8" ry="4" fill="#1C1C1E"/>
+  <path d="M340 224 L340 252 M331 257 Q340 263 349 257" stroke="#C99876" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M320 281 Q340 290 360 281" stroke="#B5675A" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <rect x="274" y="195" width="58" height="36" rx="8" fill="#FFFFFF" fill-opacity="0.12" stroke="#111111" stroke-width="5"/>
+  <rect x="348" y="195" width="58" height="36" rx="8" fill="#FFFFFF" fill-opacity="0.12" stroke="#111111" stroke-width="5"/>
+  <path d="M332 207 Q340 202 348 207" stroke="#111111" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M274 205 L263 209 M406 205 L417 209" stroke="#111111" stroke-width="4" stroke-linecap="round" fill="none"/>
 </svg>
