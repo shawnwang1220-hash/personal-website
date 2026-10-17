@@ -117,7 +117,7 @@ export const SITE = {
    * 留空 → /hire 页不渲染表单，只保留邮箱等兜底联系方式
    * （与 hireEmail 的占位降级同一思路：宁可少一个入口，也不留一个提交不了的表单）。
    */
-  hireEndpoint: "",
+  hireEndpoint: "https://api.tianxu.uk/",
 
   /**
    * 简历 PDF 的站点路径（文件放 public/ 下，填 "/xxx.pdf"）。

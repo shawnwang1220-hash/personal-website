@@ -9,7 +9,7 @@ workers_dev = true
 [[d1_databases]]
 binding = "DB"
 database_name = "hire-submissions"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "0dd3e757-e5be-4feb-bd90-5a07ccd3bdda"
 
 # ── 非敏感变量 ────────────────────────────────────────────────────────
 [vars]
