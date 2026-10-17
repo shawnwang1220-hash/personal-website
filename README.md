@@ -17,8 +17,9 @@
 
 > ### ⚠️ `gh-pages-test` 分支已废弃（2026-09-17）
 >
-> **不要重建、不要往这个分支上开发。** 该分支已在本地和远程一并删除，随它一起删除的还有
-> `.github/workflows/deploy.yml`（GitHub Pages 部署 workflow）。
+> **不要重建、不要往这个分支上开发。** 远程分支已删除；本地若仍残留 `gh-pages-test`
+> （`git branch -vv` 里显示 upstream 为 `gone`），直接 `git branch -D gh-pages-test` 清掉即可。
+> 随它一起删除的还有 `.github/workflows/deploy.yml`（GitHub Pages 部署 workflow）。
 >
 > **它当初是干什么的**：为排查「Cloudflare 缓存层（页面缓存 / Rocket Loader）与 GTM 加载冲突」
 > 而搭的 GitHub Pages 平行部署 —— `shawnwang1220-hash.github.io/personal-website`，
@@ -47,6 +48,12 @@ npm run build      # 产物输出到 dist/
 ```
 
 > 本机环境（WorkBuddy 沙箱）装依赖需串行化补丁：`NODE_OPTIONS="--require /path/to/serial-fs.cjs" npm install`。普通机器直接 `npm install` 即可。
+>
+> ⚠️ **沙箱下 `npm run build` 会失败**（报 `EPERM: operation not permitted, unlink dist/pages/*.astro.mjs`）：
+> Astro 在收尾阶段要删掉 `dist/pages/*.astro.mjs`、`dist/chunks/*` 等中间工件，这个删除动作被沙箱按
+> `file-delete` 拦掉。`dangerouslyDisableSandbox` 也拦不住。规避办法：把旧 `dist/` 移走后构建
+> （HTML 会正常生成，命令在清理阶段报错退出），注意此时 `sitemap-0.xml` 因收尾中断不会产出，
+> 需要再跑一次或直接用上一次的完整产物做校验。**这跟代码无关，线上 Cloudflare 构建不受影响。**
 
 ## 写文章
 
@@ -101,7 +108,8 @@ tags: ["ga4", "marketing"]
 以下内容是重设计时放的占位/种子数据，上线前请逐项核对替换：
 
 1. **`resumePdf` 为空** —— 上传简历 PDF 到 `public/` 后在 `site.config.ts` 填路径（见上节）
-2. **`src/content/cases/`（与 `cases/en/`）共 3 条占位案例** —— 结果数字均为 `+00%`，需替换为真实项目；详情页按「背景 → 问题 → 方案 → 结果 → 工具栈」五段写
+2. **案例集合当前为空** —— 3 条占位已重命名为 `_placeholder-0{1,2,3}.md`，loader 的 `!**/_*` 规则会把它们排除在构建之外，`/case/` 显示「还没有案例」，sitemap 里也不再有这 3 条 URL。要上线真实案例时：新建任意 `*.md`（**不要**用下划线开头），按 `title / summary / problem / approach / result|learned / tags / stack / date` 填写，中英各一份、文件名一致。
+   > ⚠️ **改文件名后若旧页面仍在生成**，是 Astro content layer 的持久化缓存没失效 —— 缓存不在 `.astro/`，在 **`node_modules/.astro/data-store.json`**，删掉整个 `node_modules/.astro/` 目录再构建即可（该目录已被 gitignore，删了会自动重建）。
 3. **`src/content/experience/`（与 `experience/en/`）共 3 条种子经历** —— 事实取自原简历页，请核对表述；增删条目后无需改代码，时间线自动更新
 4. **`hireEmail` 已填 `work@tianxu.uk`** —— 如换商务邮箱只改这一处
 
@@ -112,7 +120,7 @@ tags: ["ga4", "marketing"]
 - `src/content/experience/` ↔ `experience/en/`：`/experience` 时间线，frontmatter 为 `company/role/start/end/summary?/highlights[]`，正文折叠进 `<details>`
 - `src/content/cases/` ↔ `cases/en/`：`/case` 列表 + `/case/[slug]` 详情，frontmatter 为 `title/tags[]/summary/result/cover?/date`
 
-> `src/data/about.md` / `about.en.md` 是旧首页「关于我」的遗留文件，已不被任何页面引用（内容并入 Hero），保留仅为存档，可删。
+> `src/content/cases/` 下的 `_template.md` 与 `_placeholder-*.md` 都不会被收成条目（loader 排除 `_*` 前缀）。
 
 ## 部署到 Cloudflare Pages
 
@@ -136,13 +144,12 @@ src/
   content/posts/en/  英文文章 .md（与中文同名）
   content/experience/   工作经历 .md（/experience 时间线，中英成对）
   content/cases/     项目案例 .md（/case 列表与详情，中英成对）
-  data/about.md      旧首页「关于我」遗留（已无页面引用，可删）
-  data/about.en.md   同上（英文）
+  data/social.ts    社交链接的展示元数据（图标 + 显示名），与 site.config 的 social 按 key 关联
   i18n/              config（语言与路径推导）/ ui（文案字典）/ tags（标签中英映射）
   layouts/           BaseLayout（head / SEO / GTM / hreflang / 深色模式）
   pages/             index / posts / tags / experience / case / resume / 404 / rss.xml
   pages/en/          英文站镜像页面
-  site.config.ts     站点配置（GTM ID / 作者 / 导航 / stats / hireEmail / resumePdf）
+  site.config.ts     站点配置（GTM ID / 作者 / 导航 / stats / hireEmail / hireEndpoint / resumePdf）
   styles/global.css  全站样式（含打印样式）
 public/              robots.txt / 头像 / favicon / OG 图
 ```

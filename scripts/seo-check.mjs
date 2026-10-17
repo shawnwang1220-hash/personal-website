@@ -319,6 +319,39 @@ if (missing.length) fail(`sitemap 缺 ${missing.length} 条：${missing.slice(0,
 if (extra.length) fail(`sitemap 多 ${extra.length} 条：${extra.slice(0, 5).map((u) => u.replace(SITE, "")).join("、")}`);
 if (!missing.length && !extra.length) ok(`${smLocs.length} 条 loc 与可索引页面集合完全一致`);
 
+// 4b. sitemap 内的 hreflang 互译标注
+//
+// 标签页是已知例外：中英标签 slug 被翻译过（/tags/自动化/ ↔ /en/tags/Automation/），
+// 而 @astrojs/sitemap 的 i18n 是「按路径前缀推导配对」，推不出非镜像关系。
+// HTML 侧的 hreflang 由 BaseLayout 的 altPath 负责，那部分是正确的。
+// 所以这里只断言「非标签页」必须带齐，防止其他页面出现同类回归 ——
+// 此前这个盲区存在很久都没人发现，就是因为只校验 loc 集合、不看 xhtml:link。
+const smBlocks = [...readFileSync(join(DIST, "sitemap-0.xml"), "utf8").matchAll(/<url>([\s\S]*?)<\/url>/g)].map(
+  (m) => m[1]
+);
+const noAlt = [];
+for (const block of smBlocks) {
+  const loc = decode((block.match(/<loc>([^<]+)<\/loc>/) ?? [])[1] ?? "");
+  const n = (block.match(/<xhtml:link/g) ?? []).length;
+  if (n < 2) noAlt.push(loc);
+}
+const tagNoAlt = noAlt.filter((u) => /\/tags\//.test(u));
+const otherNoAlt = noAlt.filter((u) => !/\/tags\//.test(u));
+if (otherNoAlt.length) {
+  fail(
+    `${otherNoAlt.length} 个非标签页缺 xhtml:link 互译标注：${otherNoAlt
+      .slice(0, 5)
+      .map((u) => u.replace(SITE, ""))
+      .join("、")}`
+  );
+} else if (tagNoAlt.length) {
+  warn(
+    `${tagNoAlt.length} 个标签页无 xhtml:link（标签 slug 被翻译，sitemap 的 i18n 按路径前缀推导不出来；HTML 侧 hreflang 正确）`
+  );
+} else {
+  ok("所有 sitemap 条目均带 xhtml:link 互译标注");
+}
+
 // ─────────────────────────── 5. RSS 与 llms.txt ───────────────────────────
 
 section("5. RSS / llms.txt 收录");

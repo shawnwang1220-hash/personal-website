@@ -53,9 +53,10 @@ export default defineConfig({
     },
   },
 
-  // 只放开 CSS 压缩：样式是自己写的，未压缩后约 20KB，便于人工阅读。
-  // JS 保持压缩（默认 esbuild）——产物里 90% 是第三方 marked 库，
-  // 把 vendor 代码反压缩只是白白涨 33KB，对可读性没有价值。
+  // 只放开 CSS 压缩：样式是自己写的，单文件未压缩约 39KB，便于人工阅读与排查。
+  // 产物里没有客户端 JS —— 旧站那套 marked 渲染（assets/marked.min.js）已随
+  // 根目录旧站文件一并删除，访客侧只剩 GTM / JSON-LD / 主题预设三段 inline script，
+  // 与本项无关，因此这里不需要为 vendor JS 做任何取舍。
   vite: {
     build: {
       cssMinify: false,
