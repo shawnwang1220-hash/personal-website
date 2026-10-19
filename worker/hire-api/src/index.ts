@@ -8,14 +8,17 @@
  *   ① 校验 Origin
  *   ② 解析 body（JSON 或原生表单）
  *   ③ 字段校验 + 长度截断
- *   ④ 写 D1            ← 这一步成功即视为「已收到」，直接返回成功
- *   ⑤ 写 Notion        ← 独立 try，失败只记日志
- *   ⑥ 发通知邮件        ← 独立 try，失败只记日志
+ *   ④ 写 D1            ← 这一步成功即视为「已收到」，立即返回响应
+ *   ⑤ 写 Notion        ← 在 ctx.waitUntil 里跑，失败只记日志
+ *   ⑥ 发通知邮件        ← 同上，且与 ⑤ 互不阻塞
  *
- * 为什么 ④ 成功就返回成功：数据已经落袋，Notion 或邮件挂掉不该让访客看到报错、
+ * 为什么 ④ 成功就返回：数据已经落袋，Notion 或邮件挂掉不该让访客看到报错、
  * 也不该让他重填。失败的两步在 D1 里留下 notion_synced / mail_sent = 0 的痕迹，
  * 后续要补一个 Cron 重投也是从这两列捞。
  * 只有 ④ 本身失败才返回 5xx —— 此时前端会提示改用邮件兜底。
+ *
+ * 为什么 ⑤⑥ 不 await：它们是外部 API（Notion、Resend），串行 await 会把访客的
+ * 等待时间从「一次 D1 写入」拉长到两秒级，前端就长时间停在「发送中…」。
  */
 
 /** D1 的最小类型声明：避免为端点引入 @cloudflare/workers-types 依赖 */
@@ -25,6 +28,11 @@ interface D1PreparedStatement {
 }
 interface D1Database {
   prepare(query: string): D1PreparedStatement;
+}
+
+/** 只取用到的 ctx.waitUntil，避免为端点引入 @cloudflare/workers-types 依赖 */
+interface ExecutionContext {
+  waitUntil(promise: Promise<unknown>): void;
 }
 
 interface Env {
@@ -142,7 +150,7 @@ async function sendNotification(env: Env, r: Submission): Promise<void> {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const origin = request.headers.get("Origin") ?? "";
 
     /**
@@ -248,29 +256,40 @@ export default {
       return jsonResponse({ ok: false, error: "storage_failed" }, 500, responseOrigin);
     }
 
-    // ⑤⑥ 两个下游各自容错，互不阻塞
-    let notionOk = false;
-    let mailOk = false;
-    try {
-      await pushToNotion(env, record);
-      notionOk = true;
-    } catch (err) {
-      console.error("notion_failed", err instanceof Error ? err.message : String(err));
-    }
-    try {
-      await sendNotification(env, record);
-      mailOk = true;
-    } catch (err) {
-      console.error("resend_failed", err instanceof Error ? err.message : String(err));
-    }
+    /**
+     * ⑤⑥ 放进 waitUntil：D1 写成功就已经是「已收到」，Notion 和邮件属于补写，
+     * 不该让访客等它们。原先顺序 await 两个外部 API，实测响应 1.86s；挪到后台后
+     * 只剩 D1 一次写入的耗时。
+     *
+     * 补记 notion_synced / mail_sent 的 UPDATE 也必须在后台任务里 —— 它依赖上面两步
+     * 的结果；放进 waitUntil 才能保证 worker 不会在响应返回后被提前回收。
+     */
+    ctx.waitUntil(
+      (async () => {
+        let notionOk = false;
+        let mailOk = false;
+        try {
+          await pushToNotion(env, record);
+          notionOk = true;
+        } catch (err) {
+          console.error("notion_failed", err instanceof Error ? err.message : String(err));
+        }
+        try {
+          await sendNotification(env, record);
+          mailOk = true;
+        } catch (err) {
+          console.error("resend_failed", err instanceof Error ? err.message : String(err));
+        }
 
-    if (notionOk || mailOk) {
-      // 补记同步状态；这一步失败不影响已经返回给访客的「已收到」
-      await env.DB.prepare(`UPDATE submissions SET notion_synced = ?, mail_sent = ? WHERE id = ?`)
-        .bind(notionOk ? 1 : 0, mailOk ? 1 : 0, record.id)
-        .run()
-        .catch(() => {});
-    }
+        if (notionOk || mailOk) {
+          // 补记同步状态；这一步失败不影响已经返回给访客的「已收到」
+          await env.DB.prepare(`UPDATE submissions SET notion_synced = ?, mail_sent = ? WHERE id = ?`)
+            .bind(notionOk ? 1 : 0, mailOk ? 1 : 0, record.id)
+            .run()
+            .catch(() => {});
+        }
+      })()
+    );
 
     if (isNativeFormPost) {
       // 无 JS 降级：303 跳回页面并带成功标记，避免访客重复提交
