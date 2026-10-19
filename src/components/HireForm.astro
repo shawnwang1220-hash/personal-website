@@ -44,14 +44,27 @@ const endpoint = SITE.hireEndpoint;
         </div>
 
         <div class="hire-field">
-          <label for="hire-contact">{t.contactLabel}</label>
+          <label for="hire-email">{t.emailLabel}</label>
           <input
-            id="hire-contact"
-            name="contact"
-            type="text"
+            id="hire-email"
+            name="email"
+            type="email"
             required
             maxlength="200"
-            placeholder={t.contactPlaceholder}
+            autocomplete="email"
+            placeholder={t.emailPlaceholder}
+          />
+        </div>
+
+        <div class="hire-field">
+          <label for="hire-phone">{t.phoneLabel}</label>
+          <input
+            id="hire-phone"
+            name="phone"
+            type="tel"
+            maxlength="50"
+            autocomplete="tel"
+            placeholder={t.phonePlaceholder}
           />
         </div>
 
@@ -60,7 +73,6 @@ const endpoint = SITE.hireEndpoint;
           <textarea
             id="hire-message"
             name="message"
-            required
             rows="5"
             maxlength="5000"
             placeholder={t.messagePlaceholder}
@@ -206,9 +218,12 @@ const endpoint = SITE.hireEndpoint;
       }
       event.preventDefault();
 
+      /* email 必填（原生 + 服务端各校验一次），phone / message 可空。
+         空字符串照样发出去，让服务端拿到完整字段形状，不用猜哪个字段缺了。 */
       var payload = {
         name: form.elements.name.value,
-        contact: form.elements.contact.value,
+        email: form.elements.email.value,
+        phone: form.elements.phone.value,
         message: form.elements.message.value,
       };
 
