@@ -80,6 +80,15 @@ img { max-width: 100%; }
 .accent { color: var(--accent); }
 .serif { font-family: var(--serif); }
 
+/**
+ * hidden 属性必须真的隐藏。
+ * 浏览器只给 [hidden] 一条 UA 级 display:none，作者样式里任何 display
+ * （.hire-form{display:grid}、flex 卡片、grid 列表……）都会直接盖掉它，
+ * 于是 el.hidden = true 静默失效 —— JS 认为已隐藏，页面照旧显示。
+ * !important 是必需的：只靠选择器顺序，会被后加载的组件样式再次盖掉。
+ */
+[hidden] { display: none !important; }
+
 /* 键盘焦点：全站统一焦点环（WCAG 2.4.7） */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 

@@ -18,6 +18,8 @@ const t = getUiCopy(lang).hirePage.form;
  * 2. 同时保留 method/action（无 JS 也能提交）与 fetch 提交（有 JS 时不跳页）；
  *    所以不能加 novalidate —— 原生校验是两条路径共用的第一道关；
  * 3. 提交成功后 push 一个 dataLayer 事件，供 GTM 配成 GA4 转化。
+ * 4. 显隐靠 hidden 属性，但 .hire-form 自带 display:grid，会盖掉 UA 的
+ *    [hidden]{display:none} —— 依赖 global.css 里那条 [hidden] 兜底规则。
  *
  * 端点为空时不渲染表单：宁可不显示，也不给一个提交不了的框（页面底部仍有邮箱兜底）。
  */
@@ -87,7 +89,8 @@ const endpoint = SITE.hireEndpoint;
         </p>
       </form>
 
-      <div class="hire-form-done" id="hire-form-done" role="status" hidden>
+      {/* 成功后显示；tabindex 让脚本能把焦点移进来，屏幕阅读器才会读这块文案 */}
+      <div class="hire-form-done" id="hire-form-done" role="status" tabindex="-1" hidden>
         <h3>{t.successTitle}</h3>
         <p>{t.successText}</p>
         <p class="hire-form-note">
@@ -110,16 +113,90 @@ const endpoint = SITE.hireEndpoint;
     var idleLabel = submit ? submit.dataset.labelIdle : "";
     var busyLabel = submit ? submit.dataset.labelBusy : "";
 
-    var showDone = function () {
+    /* 按钮状态只有这两个入口：提交前 busy，成功和失败都要回到 idle。
+       原先 idle 复位只写在提交处理器的局部函数里，成功路径拿不到 —— 按钮就卡在
+       disabled + 「发送中…」。 */
+    var setBusy = function () {
+      if (!submit) return;
+      submit.disabled = true;
+      if (busyLabel) submit.textContent = busyLabel;
+    };
+    var setIdle = function () {
+      if (!submit) return;
+      submit.disabled = false;
+      if (idleLabel) submit.textContent = idleLabel;
+    };
+
+    var reducedMotion = function () {
+      return (
+        window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      );
+    };
+
+    /* 已经完整可见就不动滚动位置，免得为了「滚一下」把页面推走 */
+    var fullyVisible = function (el) {
+      var box = el.getBoundingClientRect();
+      var vh = window.innerHeight || document.documentElement.clientHeight;
+      return box.top >= 0 && box.bottom <= vh;
+    };
+
+    var reveal = function (el, smooth) {
+      if (!el || fullyVisible(el)) return;
+      el.scrollIntoView({
+        block: "center",
+        behavior: smooth && !reducedMotion() ? "smooth" : "auto",
+      });
+    };
+
+    /**
+     * 成功态：表单消失 → 成功块显示 → 焦点移入 → 滚进视口 → 地址栏留痕。
+     * track 为 false 时（带 ?sent=1 冷启动）不报转化事件，否则刷新一次就多一条
+     * GA4 事件，把一次提交记成两次。
+     */
+    var showDone = function (track) {
+      setIdle();
       form.hidden = true;
-      if (done) done.hidden = false;
+      if (!done) return;
+      done.hidden = false;
+
+      try {
+        done.focus({ preventScroll: true });
+      } catch (e) {
+        done.focus();
+      }
+      reveal(done, track);
+
+      if (!track) return;
+
+      /* ?sent=1 让刷新后仍是成功态，也给 GTM 一个可按 URL 归因的标记 */
+      try {
+        var url = new URL(location.href);
+        url.searchParams.set("sent", "1");
+        history.replaceState(null, "", url);
+      } catch (e) {
+        /* file:// 或极老浏览器：留痕失败不影响成功态 */
+      }
+
       /* 供 GTM 配 GA4 转化事件；GTM loader 已建好 dataLayer，这里只补一个保险 */
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ event: "hire_form_submit" });
     };
 
-    /* 无 JS 提交路径会带着 ?sent=1 跳回来，这里把它还原成成功态 */
-    if (/[?&]sent=1(&|$)/.test(location.search)) showDone();
+    /* 无 JS 提交路径会带着 ?sent=1 跳回来，这里把它还原成成功态。
+       脚本在解析阶段执行，此时布局还没定，推迟到下一帧再滚动。 */
+    if (/[?&]sent=1(&|$)/.test(location.search)) {
+      var restore = function () {
+        showDone(false);
+      };
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function () {
+          requestAnimationFrame(restore);
+        });
+      } else {
+        requestAnimationFrame(restore);
+      }
+    }
 
     form.addEventListener("submit", function (event) {
       /* 原生校验不过就交给浏览器自己提示，别抢在它前面发请求 */
@@ -136,17 +213,7 @@ const endpoint = SITE.hireEndpoint;
       };
 
       if (error) error.hidden = true;
-      if (submit) {
-        submit.disabled = true;
-        if (busyLabel) submit.textContent = busyLabel;
-      }
-
-      var reset = function () {
-        if (submit) {
-          submit.disabled = false;
-          if (idleLabel) submit.textContent = idleLabel;
-        }
-      };
+      setBusy();
 
       fetch(form.action, {
         method: "POST",
@@ -163,10 +230,14 @@ const endpoint = SITE.hireEndpoint;
               if (!res.ok || !body.ok) throw new Error(body.error || "http_" + res.status);
             });
         })
-        .then(showDone)
+        .then(function () {
+          showDone(true);
+        })
         .catch(function () {
-          if (error) error.hidden = false;
-          reset();
+          setIdle();
+          if (!error) return;
+          error.hidden = false;
+          reveal(error, true);
         });
     });
   })();
