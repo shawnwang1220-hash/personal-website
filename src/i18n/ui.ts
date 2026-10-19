@@ -181,8 +181,11 @@ export interface UiCopy {
       lead: string;
       nameLabel: string;
       namePlaceholder: string;
-      contactLabel: string;
-      contactPlaceholder: string;
+      /** 邮箱必填，电话选填 —— 拆成两个字段后不再有「邮箱或微信」合一输入 */
+      emailLabel: string;
+      emailPlaceholder: string;
+      phoneLabel: string;
+      phonePlaceholder: string;
       messageLabel: string;
       messagePlaceholder: string;
       submit: string;
@@ -386,19 +389,21 @@ const UI_ZH: UiCopy = {
     contactLead: "也可以直接发邮件或加 LinkedIn —— 哪个方便用哪个。",
     form: {
       title: "说说你的需求",
-      lead: "填三句话就行：你是谁、怎么找你、要解决什么问题。我会在 2 个工作日内回复。",
+      lead: "留个邮箱就能发，其余选填。我会在 2 个工作日内回复。",
       nameLabel: "姓名",
       namePlaceholder: "怎么称呼",
-      contactLabel: "联系方式",
-      contactPlaceholder: "邮箱或微信，哪个方便用哪个",
-      messageLabel: "需求",
+      emailLabel: "邮箱",
+      emailPlaceholder: "you@company.com",
+      phoneLabel: "电话（选填）",
+      phonePlaceholder: "希望电话沟通的话留一个",
+      messageLabel: "需求（选填）",
       messagePlaceholder: "现状 + 目标，例如：GA4 数据不准，想重建追踪体系",
       submit: "发送需求",
       submitting: "发送中…",
       successTitle: "已收到。",
       successText: "我会在 2 个工作日内回复。",
       error: "没发出去，可能是网络问题。",
-      privacy: "信息仅用于回复本次咨询，不会转给第三方。",
+      privacy: "邮箱用于回复本次咨询，电话只在你希望电话沟通时使用，都不转给第三方。",
       fallback: "也可以直接发邮件：",
     },
   },
@@ -626,12 +631,14 @@ const UI_EN: UiCopy = {
     contactLead: "Or just email me, or reach me on LinkedIn — whichever is easier.",
     form: {
       title: "Tell me what you need",
-      lead: "Three lines is enough: who you are, how to reach you, and what you want to fix. I reply within 2 working days.",
+      lead: "Your email is all I need — the rest is optional. I reply within 2 working days.",
       nameLabel: "Name",
       namePlaceholder: "What should I call you",
-      contactLabel: "Contact",
-      contactPlaceholder: "Email or WeChat — whichever you prefer",
-      messageLabel: "What you need",
+      emailLabel: "Email",
+      emailPlaceholder: "you@company.com",
+      phoneLabel: "Phone (optional)",
+      phonePlaceholder: "Leave one if you'd rather talk by phone",
+      messageLabel: "What you need (optional)",
       messagePlaceholder:
         'Where you are and where you want to be — e.g. "GA4 numbers do not add up, we want to rebuild tracking"',
       submit: "Send",
@@ -639,7 +646,8 @@ const UI_EN: UiCopy = {
       successTitle: "Got it.",
       successText: "I'll get back to you within 2 working days.",
       error: "That didn't go through — possibly a network issue.",
-      privacy: "Used only to reply to this enquiry. Never shared with third parties.",
+      privacy:
+        "Your email is used only to reply; your phone number only if you asked for a call. Never shared with third parties.",
       fallback: "You can also email me directly:",
     },
   },

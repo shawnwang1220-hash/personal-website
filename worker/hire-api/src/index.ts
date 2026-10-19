@@ -41,7 +41,7 @@ interface Env {
 }
 
 /** 字段长度上限 —— 超出即截断，防止超长内容写进库 / Notion / 邮件 */
-const MAX = { name: 100, contact: 200, message: 5000 } as const;
+const MAX = { name: 100, email: 200, phone: 50, message: 5000 } as const;
 
 const corsHeaders = (origin: string): Record<string, string> => ({
   "Access-Control-Allow-Origin": origin,
@@ -68,14 +68,23 @@ const escapeHtml = (s: string): string =>
 
 const clip = (s: string, max: number): string => s.trim().slice(0, max);
 
-/** 宽松的邮箱识别：只用于决定要不要设 reply_to，不用于校验字段合法性 */
-const looksLikeEmail = (s: string): boolean => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
+/**
+ * 邮箱格式校验。前端 type="email" 只是第一道关（可被绕过），服务端必须自己判。
+ * 规则刻意宽松：有且只有一个 @、两侧非空、域名含点、顶级域至少两位 ——
+ * 目的是挡住手误（漏 @、漏域名），不是实现 RFC 5322。
+ * 校验通过的值同时拿去做 reply_to —— 能回复才叫联系方式。
+ */
+const isEmail = (s: string): boolean => /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(s);
 
 interface Submission {
   id: string;
   created_at: string;
   name: string;
-  contact: string;
+  /** 必填且已过格式校验 */
+  email: string;
+  /** 选填，可能为空串 */
+  phone: string;
+  /** 选填，可能为空串 */
   message: string;
   ip: string;
   user_agent: string;
@@ -96,11 +105,19 @@ async function pushToNotion(env: Env, r: Submission): Promise<void> {
     },
     body: JSON.stringify({
       parent: { database_id: env.NOTION_DATABASE_ID },
-      // 属性名必须与 Notion 数据库里的一模一样，差一个字就是 400
+      /**
+       * 属性名必须与 Notion 数据库里的一模一样，差一个字就是 400。
+       *
+       * 2026-10 起联系方式拆成 Email（email 类型）/ Phone（phone_number 类型）两列，
+       * 由 MCP 直接建列，类型与下面这里必须对得上。
+       * 历史「联系方式」列保留不删、新记录不再写入 —— 空值就是空值，
+       * 不去猜旧的「邮箱或微信」哪个是哪个。
+       */
       properties: {
         姓名: { title: [{ text: { content: r.name } }] },
-        联系方式: { rich_text: [{ text: { content: r.contact } }] },
-        需求: { rich_text: [{ text: { content: r.message } }] },
+        Email: { email: r.email },
+        Phone: { phone_number: r.phone ? r.phone : null },
+        需求: { rich_text: r.message ? [{ text: { content: r.message } }] : [] },
         时间: { date: { start: r.created_at } },
         来源: { select: { name: "hire 表单" } },
       },
@@ -113,7 +130,11 @@ async function pushToNotion(env: Env, r: Submission): Promise<void> {
 
 /** ⑥ Resend：给站长发一条通知 */
 async function sendNotification(env: Env, r: Submission): Promise<void> {
-  const summary = r.message.replace(/\s+/g, " ").slice(0, 40);
+  /** 主题里塞一句需求摘要；没填需求就退回「只有邮箱的提交」，不让主题空着 */
+  const summary = r.message
+    ? r.message.replace(/\s+/g, " ").slice(0, 40)
+    : "no message";
+  const empty = '<span style="color:#888">未填写</span>';
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -123,14 +144,17 @@ async function sendNotification(env: Env, r: Submission): Promise<void> {
     body: JSON.stringify({
       from: env.FROM_EMAIL,
       to: [env.NOTIFY_TO],
-      // 联系方式是邮箱时直接可回复；是微信就退回默认收件箱
-      ...(looksLikeEmail(r.contact) ? { reply_to: r.contact } : {}),
+      // 邮箱必填且已过校验，直接能回；电话只作补充，不做 reply_to
+      reply_to: r.email,
       subject: `[Hire] ${r.name} — ${summary}`,
       html: [
         `<p><strong>姓名：</strong>${escapeHtml(r.name)}</p>`,
-        `<p><strong>联系方式：</strong>${escapeHtml(r.contact)}</p>`,
+        `<p><strong>邮箱：</strong>${escapeHtml(r.email)}</p>`,
+        `<p><strong>电话：</strong>${r.phone ? escapeHtml(r.phone) : empty}</p>`,
         `<p><strong>需求：</strong></p>`,
-        `<p style="white-space:pre-wrap">${escapeHtml(r.message)}</p>`,
+        r.message
+          ? `<p style="white-space:pre-wrap">${escapeHtml(r.message)}</p>`
+          : `<p>${empty}</p>`,
         `<hr />`,
         `<p style="color:#888;font-size:12px">提交时间 ${escapeHtml(r.created_at)} · 记录 ${escapeHtml(r.id)}</p>`,
       ].join("\n"),
@@ -194,12 +218,21 @@ export default {
       return jsonResponse({ ok: false, error: "bad_payload" }, 400, responseOrigin);
     }
 
-    // ③ 校验
+    // ③ 校验：email 必填且格式正确，phone / message 允许为空
     const name = clip(String(payload.name ?? ""), MAX.name);
-    const contact = clip(String(payload.contact ?? ""), MAX.contact);
+    /**
+     * 过渡兼容：2026-10 之前的前端发的是 contact（邮箱或微信合一）。
+     * 留这条 fallback，worker 与页面就不必同时切换 —— 谁先上线都不会让表单报错。
+     * 等新页面全量生效后可以删掉，微信 ID 会被下面的邮箱校验挡下，不会混进来。
+     */
+    const email = clip(String(payload.email ?? payload.contact ?? ""), MAX.email).toLowerCase();
+    const phone = clip(String(payload.phone ?? ""), MAX.phone);
     const message = clip(String(payload.message ?? ""), MAX.message);
-    if (!name || !contact || !message) {
+    if (!name || !email) {
       return jsonResponse({ ok: false, error: "missing_fields" }, 422, responseOrigin);
+    }
+    if (!isEmail(email)) {
+      return jsonResponse({ ok: false, error: "invalid_email" }, 422, responseOrigin);
     }
 
     const referer = request.headers.get("Referer") ?? "";
@@ -218,7 +251,8 @@ export default {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
       name,
-      contact,
+      email,
+      phone,
       message,
       ip: request.headers.get("CF-Connecting-IP") ?? "",
       user_agent: clip(request.headers.get("User-Agent") ?? "", 300),
@@ -227,16 +261,20 @@ export default {
     };
 
     // ④ 写 D1 —— 全部走参数化绑定，不做字符串拼接
+    // contact 是 2026-10 前的历史列（NOT NULL），新记录填邮箱即可：既满足约束，
+    // 也让按老列导出的脚本不至于拿到空值。结构化查询请用 email / phone。
     try {
       await env.DB.prepare(
-        `INSERT INTO submissions (id, created_at, name, contact, message, ip, user_agent, referer)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO submissions (id, created_at, name, contact, email, phone, message, ip, user_agent, referer)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
         .bind(
           record.id,
           record.created_at,
           record.name,
-          record.contact,
+          record.email,
+          record.email,
+          record.phone,
           record.message,
           record.ip,
           record.user_agent,
