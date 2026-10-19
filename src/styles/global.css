@@ -652,7 +652,9 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
 .hire-page .section.container { padding-inline: 20px; }
 
 /* ---------- 首屏 ---------- */
-.hire-hero { padding-top: 0; }
+/* 这里不要再单独设 padding-top：原先是 `padding-top: 0`，把 .section 的 56px
+   抹平了，h1 直接贴住吸顶导航的下边框（线上实测间距 0px，中文英文都一样）。
+   首屏沿用 .section 的顶部内边距，与 /experience 等页面的起手位置保持一致。 */
 .hire-hero-title {
   font-family: var(--serif); font-weight: 700;
   font-size: clamp(28px, 4.6vw, 40px); line-height: 1.25; letter-spacing: -0.5px;
