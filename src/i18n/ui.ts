@@ -411,8 +411,8 @@ const UI_ZH: UiCopy = {
     pageTitle: "经历",
     pageDescription: "王天旭的工作经历 —— 独立 MarTech 顾问、博睿数据海外数字营销、氦图科技 hireEZ 营销运营。",
     heading: "经历",
-    intro: "按时间倒序排列。每段默认折叠，点击展开查看重点与详情。",
-    detailsLabel: "展开详情",
+    intro: "按时间倒序排列。结论在前，要点与详情收在折叠里。",
+    detailsLabel: "展开要点",
     empty: "还没有经历数据。",
   },
   case: {
@@ -656,8 +656,8 @@ const UI_EN: UiCopy = {
     pageDescription:
       "Shawn Wang's professional experience — independent MarTech consulting, global marketing at Bonree Data, and marketing operations at hireEZ.",
     heading: "Experience",
-    intro: "Reverse chronological. Each role is collapsed by default — expand for highlights and details.",
-    detailsLabel: "Expand details",
+    intro: "Reverse chronological. Lead with the conclusion; highlights and details sit in the collapsible section.",
+    detailsLabel: "Expand highlights",
     empty: "No experience entries yet.",
   },
   case: {
