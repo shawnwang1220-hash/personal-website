@@ -17,6 +17,19 @@ const { company, role, start, end, summary, highlights } = item.data;
 
 /* markdown 正文整体折叠进 <details>：内容详略两种情况下时间线都不塌 */
 const { Content } = await render(item);
+
+/**
+ * summary 与 highlights 是 frontmatter 里的纯文本，Astro 默认按文本转义输出。
+ * 这里只补一种行内语法：**加粗**（关键术语靠它扫读）。先转义再替换，
+ * 因此字段里出现 < > & 不会被当成 HTML 执行。
+ */
+function inlineBold(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
 ---
 
 <li class="timeline-item reveal">
@@ -25,14 +38,14 @@ const { Content } = await render(item);
   </div>
   <Heading class="timeline-role">{role}</Heading>
   <div class="timeline-company">{company}</div>
-  {summary && <p class="timeline-summary">{summary}</p>}
+  {summary && <p class="timeline-summary" set:html={inlineBold(summary)} />}
 
   <details>
     <summary>{t.experience.detailsLabel}</summary>
     <div class="timeline-detail markdown-body">
       {highlights.length > 0 && (
         <ul>
-          {highlights.map((h) => <li>{h}</li>)}
+          {highlights.map((h) => <li set:html={inlineBold(h)} />)}
         </ul>
       )}
       <Content />
