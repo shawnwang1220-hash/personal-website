@@ -79,6 +79,11 @@ const endpoint = SITE.hireEndpoint;
           />
         </div>
 
+        {/* GA4 标识符：由页面脚本填入，非必填。
+            读不到（隐私设置 / 广告拦截 / 无 JS）就留空，不阻塞提交。 */}
+        <input type="hidden" id="ga-client-id-field" name="ga_client_id" value="" />
+        <input type="hidden" id="ga-session-id-field" name="ga_session_id" value="" />
+
         <button
           class="btn btn-primary"
           type="submit"
@@ -118,6 +123,44 @@ const endpoint = SITE.hireEndpoint;
   (function () {
     var form = document.getElementById("hire-form");
     if (!form) return;
+
+    /* ── GA4 标识符 ──────────────────────────────────────────────
+       来源是 GA4 写的两条第一方 cookie：
+         _ga              = GA1.1.<clientId 前段>.<后段>
+         _ga_<MEASUREMENT_ID> = GS1/GS2 串，会话号在 s 后面
+       两者都是普通 cookie，JS 可读；读不到时返回空串，走非必填路径。 */
+    var GA_SESSION_COOKIE = "_ga_BWQYG6F2G3";
+    var gaClientField = document.getElementById("ga-client-id-field");
+    var gaSessionField = document.getElementById("ga-session-id-field");
+
+    var getCookie = function (name) {
+      var m = document.cookie.match(
+        new RegExp("(?:^|; )" + name.replace(/[.$?*|{}()\[\]\\\/\+^]/g, "\\$&") + "=([^;]*)")
+      );
+      return m ? decodeURIComponent(m[1]) : "";
+    };
+
+    /* GS1 是 `GS1.1.<sid>...`，GS2 是 `GS2.1.s<sid>$...` —— 两条都得吃得下，
+       只认 GS1 会让 session_id 静默变空。 */
+    var readGaIds = function () {
+      var p = getCookie("_ga").split(".");
+      var gs = getCookie(GA_SESSION_COOKIE);
+      var m = gs ? gs.match(/GS\d\.\d\.s?(\d+)/) : null;
+      return {
+        cid: p.length >= 4 ? p[2] + "." + p[3] : "",
+        sid: m ? m[1] : "",
+      };
+    };
+
+    /* 首屏填一次；提交前再读一次 —— 页面可能在后台停留很久，
+       期间 cookie 可能被重写（另一个标签页、或 ITP 过期后重新生成）。 */
+    var syncGaIds = function () {
+      var ids = readGaIds();
+      if (gaClientField) gaClientField.value = ids.cid;
+      if (gaSessionField) gaSessionField.value = ids.sid;
+      return ids;
+    };
+    syncGaIds();
 
     var done = document.getElementById("hire-form-done");
     var error = document.getElementById("hire-form-error");
@@ -191,8 +234,13 @@ const endpoint = SITE.hireEndpoint;
       }
 
       /* 供 GTM 配 GA4 转化事件；GTM loader 已建好 dataLayer，这里只补一个保险 */
+      var ids = readGaIds();
       window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ event: "hire_form_submit" });
+      window.dataLayer.push({
+        event: "hire_form_submit",
+        ga_client_id: ids.cid,
+        ga_session_id: ids.sid,
+      });
     };
 
     /* 无 JS 提交路径会带着 ?sent=1 跳回来，这里把它还原成成功态。
@@ -220,11 +268,14 @@ const endpoint = SITE.hireEndpoint;
 
       /* email 必填（原生 + 服务端各校验一次），phone / message 可空。
          空字符串照样发出去，让服务端拿到完整字段形状，不用猜哪个字段缺了。 */
+      var ids = syncGaIds();
       var payload = {
         name: form.elements.name.value,
         email: form.elements.email.value,
         phone: form.elements.phone.value,
         message: form.elements.message.value,
+        ga_client_id: ids.cid,
+        ga_session_id: ids.sid,
       };
 
       if (error) error.hidden = true;

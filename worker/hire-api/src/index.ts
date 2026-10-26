@@ -43,6 +43,27 @@ interface Env {
 /** 字段长度上限 —— 超出即截断，防止超长内容写进库 / Notion / 邮件 */
 const MAX = { name: 100, email: 200, phone: 50, message: 5000 } as const;
 
+/**
+ * GA4 标识符的格式约束。
+ * client_id 形如 `1234567890.1690000000`（`_ga` cookie 去掉 `GA1.1.` 前缀），
+ * session_id 是纯数字（取自 `_ga_<MEASUREMENT_ID>` 的 GS1/GS2 串）。
+ */
+const CLIENT_ID_RE = /^\d{1,20}\.\d{1,20}$/;
+const SESSION_ID_RE = /^\d{1,20}$/;
+
+/**
+ * 隐藏字段可被伪造，格式不符一律置空 —— 脏值不进 D1、不进 Notion。
+ * 前端因隐私设置 / 广告拦截读不到 cookie 时也是空串，属正常路径，不做报错。
+ */
+const normalizeClientId = (v: unknown): string => {
+  const s = String(v ?? "").trim();
+  return CLIENT_ID_RE.test(s) ? s : "";
+};
+const normalizeSessionId = (v: unknown): string => {
+  const s = String(v ?? "").trim();
+  return SESSION_ID_RE.test(s) ? s : "";
+};
+
 const corsHeaders = (origin: string): Record<string, string> => ({
   "Access-Control-Allow-Origin": origin,
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -86,6 +107,10 @@ interface Submission {
   phone: string;
   /** 选填，可能为空串 */
   message: string;
+  /** 选填：GA4 客户端 ID；读不到 cookie 时为空串 */
+  ga_client_id: string;
+  /** 选填：GA4 会话 ID；同上 */
+  ga_session_id: string;
   ip: string;
   user_agent: string;
   referer: string;
@@ -120,6 +145,10 @@ async function pushToNotion(env: Env, r: Submission): Promise<void> {
         需求: { rich_text: r.message ? [{ text: { content: r.message } }] : [] },
         时间: { date: { start: r.created_at } },
         来源: { select: { name: "hire 表单" } },
+        // 空值不写空 rich_text 数组：没抓到就是留空，不假装有值
+        "Client ID": {
+          rich_text: r.ga_client_id ? [{ text: { content: r.ga_client_id } }] : [],
+        },
       },
     }),
   });
@@ -151,6 +180,7 @@ async function sendNotification(env: Env, r: Submission): Promise<void> {
         `<p><strong>姓名：</strong>${escapeHtml(r.name)}</p>`,
         `<p><strong>邮箱：</strong>${escapeHtml(r.email)}</p>`,
         `<p><strong>电话：</strong>${r.phone ? escapeHtml(r.phone) : empty}</p>`,
+        `<p><strong>Client ID：</strong>${r.ga_client_id ? escapeHtml(r.ga_client_id) : empty}</p>`,
         `<p><strong>需求：</strong></p>`,
         r.message
           ? `<p style="white-space:pre-wrap">${escapeHtml(r.message)}</p>`
@@ -228,6 +258,8 @@ export default {
     const email = clip(String(payload.email ?? payload.contact ?? ""), MAX.email).toLowerCase();
     const phone = clip(String(payload.phone ?? ""), MAX.phone);
     const message = clip(String(payload.message ?? ""), MAX.message);
+    const gaClientId = normalizeClientId(payload.ga_client_id);
+    const gaSessionId = normalizeSessionId(payload.ga_session_id);
     if (!name || !email) {
       return jsonResponse({ ok: false, error: "missing_fields" }, 422, responseOrigin);
     }
@@ -254,6 +286,8 @@ export default {
       email,
       phone,
       message,
+      ga_client_id: gaClientId,
+      ga_session_id: gaSessionId,
       ip: request.headers.get("CF-Connecting-IP") ?? "",
       user_agent: clip(request.headers.get("User-Agent") ?? "", 300),
       referer: clip(referer, 300),
@@ -265,8 +299,8 @@ export default {
     // 也让按老列导出的脚本不至于拿到空值。结构化查询请用 email / phone。
     try {
       await env.DB.prepare(
-        `INSERT INTO submissions (id, created_at, name, contact, email, phone, message, ip, user_agent, referer)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO submissions (id, created_at, name, contact, email, phone, message, ga_client_id, ga_session_id, ip, user_agent, referer)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
         .bind(
           record.id,
@@ -276,6 +310,8 @@ export default {
           record.email,
           record.phone,
           record.message,
+          record.ga_client_id,
+          record.ga_session_id,
           record.ip,
           record.user_agent,
           record.referer

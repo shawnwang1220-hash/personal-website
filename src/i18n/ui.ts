@@ -403,7 +403,8 @@ const UI_ZH: UiCopy = {
       successTitle: "已收到。",
       successText: "我会在 2 个工作日内回复。",
       error: "没发出去，可能是网络问题。",
-      privacy: "邮箱用于回复本次咨询，电话只在你希望电话沟通时使用，都不转给第三方。",
+      privacy:
+        "邮箱用于回复本次咨询，电话只在你希望电话沟通时使用，都不转给第三方。提交时会一并带上浏览器里由 Google Analytics 生成的随机标识符（Client ID），只用来判断需求来自哪个页面或渠道，不含你的身份信息。",
       fallback: "也可以直接发邮件：",
     },
   },
@@ -647,7 +648,7 @@ const UI_EN: UiCopy = {
       successText: "I'll get back to you within 2 working days.",
       error: "That didn't go through — possibly a network issue.",
       privacy:
-        "Your email is used only to reply; your phone number only if you asked for a call. Never shared with third parties.",
+        "Your email is used only to reply; your phone number only if you asked for a call. Never shared with third parties. Your submission also carries the random identifier (Client ID) Google Analytics stores in your browser — used only to tell which page or campaign the enquiry came from.",
       fallback: "You can also email me directly:",
     },
   },
