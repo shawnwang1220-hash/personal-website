@@ -1,85 +1,93 @@
 ---
-title: "Capturing the GA4 client_id in a form"
-summary: "A form that stopped at name and request. I attached the GA4 client_id and session_id to every submission without adding an input."
-tags: ["GA4", "GTM", "Tracking", "BigQuery"]
+title: "From cookie to lead record: the GA4 client_id"
+summary: "Capturing the GA4 client_id through a hidden form field, storing it with the lead record, and checking it against the value GA4 reports."
+tags: ["GA4", "GTM", "Tracking"]
 metric: "0 new fields"
-problem: "The form asked for three things: name, email, what they needed. The moment it succeeded, the enquiry was cut loose from the session that produced it. GA4 knew a submission had happened; the internal record held a contact; nothing in either place could be matched to the other. Finding out which pages that client had read, or where they came from, meant guessing."
-approach: "Two hidden fields, nothing for the visitor to fill in. A script reads client_id and session_id out of the two first-party cookies GA4 writes, re-reads them at submit time, and sends them with the request to the backend. Both are optional: if the cookies are absent, they travel empty. The backend validates the format and writes to the internal record, and the same two values ride along on the dataLayer success event for GTM. GA4 itself was left alone, with no custom dimension registered."
-result: "Every submission now carries an identifier that matches a record in the GA4 export, provided the visitor's cookies survived their privacy settings or ad blocker. Form usability is unchanged: ad blockers, no-JS submissions and expired cookies were all tested, and the form still goes through."
-learned: "Two things worth remembering. The session number now ships the GS2 format, and a parser written for GS1 silently returns nothing, with no error and nothing in any report, discoverable only by testing. And hidden fields can be edited by anyone, so the backend has to validate the format itself. Separately: recording a value and being able to see it in GA4 are two different things, and without a custom dimension only BigQuery can answer."
-stack: ["GA4", "GTM", "BigQuery"]
+problem: "GA4 records page views and form submissions, while lead records are stored elsewhere. Nothing in the two datasets can be matched to the other, so analysing a lead's behaviour before submission needs a key that exists in both."
+approach: "A hidden field carries the client_id into the lead record on submit, while the same value rides along on the form submission event for GA4. The field is optional, left empty when it cannot be read, and validated on the server."
+result: "The same client_id is retrievable from both the lead record and the GA4 event data, and the two values agree. Capture, transmission, storage and reporting were each verified."
+learned: "Three points: an identifier has to survive the whole chain to count as connected; the same identifier can serve two different pipelines; sending client_id as an event parameter does not make it usable as a dimension in GA4 reports."
+stack: ["GA4", "GTM"]
 date: 2026-10-27
 ---
 
-## Why no custom dimension
+## 1. The problem: linking on-site behaviour to the leads it produces
 
-client_id is one value per person, so its cardinality tracks your visitor count. GA4's report tables have a row limit: once a dimension produces more values than the table can hold, the surplus is not lost, but it gets folded into a single row called "(other)". You see the most common values and nothing else — the long tail dissolves into one line.
+GA4 records page views, form submissions and other on-site behaviour, but that data is normally stored separately from the lead information submitted through a form. Analysing what a lead did before converting requires an identifier that exists in both datasets.
 
-Google's own guidance is that any dimension with more than 500 values should be treated as high cardinality. That 500 is a reference threshold, not a hard cap; the actual row limit depends on the report and the property type. What matters here is that client_id's cardinality follows traffic, so a site with any real volume crosses the line within a day.
+The GA4 Client ID identifies a browser across visits. Capturing it into the lead record provides a basis for that later analysis. This project set out to answer three questions:
 
-The practical outcome: **most of the list ends up inside "(other)", which is the same as not registering the dimension at all, minus one slot**. A standard report was never the place for a primary key.
+- How is the GA4 Client ID obtained when a visitor submits a form?
+- How is it submitted alongside the form and stored with the lead record?
+- How is the stored value verified against the Client ID sent to GA4?
 
-For detail there is exactly one route: the BigQuery export, which has no (other) row — every row is a raw event.
+## 2. The approach: capture, transmit, store and verify
 
-The reverse also holds. If the only question is "which channel brings the most enquiries", the channel dimensions GA4 already has will answer it with no client_id involved. The one thing client_id buys is taking a specific person and asking what they read.
+### 2.1 Reading the Client ID from the browser cookie
 
-## Where the values come from
+JavaScript reads the `_ga` cookie, parses out the GA4 Client ID, and writes it into a hidden form field. The visitor fills in and submits the form as usual, with no additional step.
 
-Both are first-party cookies written by GA4 itself, readable from JavaScript with no extra permission:
+The `_ga` value takes the form `GA1.1.<part one>.<part two>`; joining the last two segments gives the Client ID.
 
-| Cookie | Shape | Extraction |
-| --- | --- | --- |
-| `_ga` | `GA1.1.<part one>.<part two>` | join the two parts, that is the client_id |
-| `_ga_<measurement ID>` | `GS2.1.s<session>$o<number>$…` | take the digits after `s`, that is the session_id |
+The field is optional, and three situations leave it empty:
 
-The client_id is stable for the life of the cookie. The session_id rotates after 30 minutes of inactivity.
-
-The session number cost me a debugging round. The older format is `GS1.1.<session>…`; the current one is `GS2.1.s<session>$…`, with an extra `s` prefix. A regex written for the old shape never matches, so session_id stays empty, **and nothing anywhere reports it**. All you see is a field that is always blank. The version that handles both:
-
-```js
-var m = gs.match(/GS\d\.\d\.s?(\d+)/);
-```
-
-## Three cases where it stays empty
-
-The fields are optional because all three of these happen, and none of them should turn into a failed submission:
-
-| Case | What happens |
+| Situation | Cause |
 | --- | --- |
-| Ad blocker or privacy extension | `googletagmanager.com` is blocked, GA4 never initialises, the cookies do not exist |
-| Submission without JavaScript | Native form post, the script never runs, the hidden fields are empty strings |
-| Safari's ITP | First-party cookies also expire after 7 days and get regenerated, so weeks do not line up |
+| Ad blocker or privacy extension | `googletagmanager.com` is blocked, GA4 never initialises, the cookie is absent |
+| Submission without JavaScript | Native form post, the script never runs, the hidden field is an empty string |
+| Safari's ITP | First-party cookies expire after 7 days and are regenerated |
 
-The third is the easy one to miss. It is not "the value is missing", it is "the value is there but belongs to a different person". The same visitor returning two weeks later has a new client_id, and tracing by client_id breaks in the middle.
+The third case needs separate mention. The cookie is still present, but it now carries a different Client ID. The same visitor returning a week later is a new identifier, and any lookup based on the old one breaks in the middle.
 
-## The backend does not trust the client
+**Format changes and the choice of approach**
 
-Hidden fields are visible and editable, so a single request with a made-up value writes junk into the internal record. The backend therefore validates the shape: anything that looks like a client_id is kept, anything else is treated as empty.
+The session identifier in the cookie has two formats: `GS1.1.<session>…` and `GS2.1.s<session>$…`, the latter with an additional `s` prefix. Parsing logic written for the first returns an empty value under the second, with no error raised anywhere.
 
-The rule behind it: **this field is a nice-to-have, and its failure must never affect receiving the enquiry itself**. The write happens first; downstream steps fail independently without rolling back the main record, and the visitor never sees an error because of them.
+A more robust approach now exists. In December 2025 GTM introduced built-in Client ID, Session ID and Session Number variables, which read GA4's internal state rather than parsing the cookie, and are therefore unaffected by format changes.
 
-## How to actually use it
+The container in this project does not have those built-in variables enabled, and using them to populate a form field requires an additional tag whose execution may land after the visitor has already submitted. Reading the cookie directly was chosen instead. This is a trade-off in approach, not a difference in difficulty.
 
-In the GA4 BigQuery export, `user_pseudo_id` is the client_id. Query it directly with the stored value:
+### 2.2 Storing the Client ID with the lead record
 
-```sql
-SELECT
-  event_name,
-  event_timestamp,
-  (SELECT value.string_value FROM UNNEST(event_params)
-    WHERE key = 'page_location') AS page
-FROM `your-project.analytics_XXXXXXX.events_*`
-WHERE _TABLE_SUFFIX BETWEEN '20261001' AND '20261031'
-  AND user_pseudo_id = '807214021.1793021546'
-ORDER BY event_timestamp DESC
-LIMIT 200
-```
+On submission the form data is sent to the backend, processed and stored, with the Client ID written alongside the other fields. Inspecting an actual record confirms the value travelled from the browser into storage, rather than stopping at the page.
 
-For session-level detail, filter once more on `ga_session_id` from `event_params`.
+Hidden fields are visible and editable, so the backend validates the format: values matching the Client ID shape are kept, everything else is treated as empty. The premise behind that check is that this field exists to support analysis, and its failure must not affect receiving the lead. The write happens first; downstream steps fail independently without rolling back the main record or surfacing an error to the visitor.
 
-## Scope and limits
+### 2.3 Reporting the Client ID to GA4 as an event parameter
 
-- **This solves retrospective lookup, not attribution accuracy.** For knowing which channel an enquiry came from, the form submission event already carries full source information in GA4. The only thing client_id adds is the ability to take one specific person and ask what they read.
-- **Cross-device is impossible.** The client_id lives in a browser; a phone and a laptop are two different people, with no way to merge them.
-- **Coverage is partial.** The three empty cases above add up to more than a rounding error. This pipeline is a sample by construction, not a census.
-- **Do not treat it as a user ID.** It is a browser-level pseudonymous identifier: clearing cookies, switching devices or changing browsers all break it, and none of that is under the user's control.
+On a successful submission an event is pushed to the dataLayer carrying the Client ID and Session ID as parameters, which GTM reads and sends to GA4.
+
+No custom dimension was registered in GA4, for reasons of cardinality. The Client ID is one value per person, so its cardinality equals the number of visitors. GA4 reports have a row limit; rows beyond it are not discarded but folded into a single "(other)" row, keeping only the most common values. Google's reference point for high cardinality is more than 500 values for a dimension. Registering it as a custom dimension would therefore put most records into "(other)", unusable for row-level analysis, while consuming one dimension slot.
+
+For detail, the BigQuery export provides it: `user_pseudo_id` is the Client ID.
+
+### 2.4 Verifying agreement between the two pipelines
+
+Once configured, two places were checked:
+
+- the lead record, which shows the Client ID stored at submission;
+- GA4 DebugView, where the submission event fires with the expected parameters.
+
+Both pipelines in this project share a single cookie-parsing result, so agreement is guaranteed by the source rather than by coincidence. The verification confirms that the value survives submission, backend processing and storage without loss or truncation in transit.
+
+If the event-side value were later taken from GTM's built-in variable instead, the two pipelines would have different sources. Only then does cross-checking carry independent value, exposing things a single path cannot see, such as a rewritten cookie or a parsing error.
+
+## 3. The result: a closed loop from browser identifier to lead record
+
+All four stages were verified: the Client ID is parsed from the `_ga` cookie, submitted through a hidden field, stored by the backend and readable in the lead record, and appears as an event parameter in GA4 DebugView.
+
+What this project delivered is data capture and pipeline verification. It did not implement the BigQuery join between behaviour and lead records, and it did not measure any effect on conversion rate or acquisition cost.
+
+## 4. What I learned: capture working is not analysis working
+
+### 4.1 An identifier has to survive the whole chain
+
+Being able to read an identifier in the browser says nothing about whether it reaches the business data. Only after confirming it survives submission, backend processing and storage is the pipeline actually connected.
+
+### 4.2 The same identifier can serve different pipelines
+
+Lead capture and event reporting serve different purposes and can share one value. When the source is shared, agreement is structural; when sources differ, cross-checking becomes meaningful on its own. Distinguishing the two decides how much the verification is actually worth.
+
+### 4.3 Capture is not the same as analysability
+
+Sending the Client ID as an event parameter does not make it usable as a dimension in GA4's standard reports. A high-cardinality dimension gets folded into "(other)" once the row limit is reached. Row-level joining requires the BigQuery export. That is a further extension, outside what this project delivered.
