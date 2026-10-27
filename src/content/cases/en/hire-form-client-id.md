@@ -1,24 +1,27 @@
 ---
 title: "Capturing the GA4 client_id in a form"
-summary: "A form that stopped at name and request. I attached the GA4 client_id and session_id to every submission without adding an input, landing them in D1 and Notion."
+summary: "A form that stopped at name and request. I attached the GA4 client_id and session_id to every submission without adding an input."
 tags: ["GA4", "GTM", "Tracking", "BigQuery"]
-problem: "The form asked for three things: name, email, what they needed. The moment it succeeded, the enquiry was cut loose from the session that produced it. GA4 knew a submission had happened; Notion held a contact; nothing in either place could be matched to the other. Finding out which pages that client had read, or where they came from, meant guessing."
-approach: "Two hidden fields, nothing for the visitor to fill in. A page script reads client_id and session_id out of the two first-party cookies GA4 writes (_ga and _ga_ with the measurement ID), re-reads them at submit time, and sends them with the request to my own Worker. Both are optional: if the cookies are absent, they travel empty. The Worker validates the format and writes to D1 and Notion, and the same two values ride along on the dataLayer success event for GTM. GA4 itself was left alone, with no custom dimension registered."
+metric: "0 new fields"
+problem: "The form asked for three things: name, email, what they needed. The moment it succeeded, the enquiry was cut loose from the session that produced it. GA4 knew a submission had happened; the internal record held a contact; nothing in either place could be matched to the other. Finding out which pages that client had read, or where they came from, meant guessing."
+approach: "Two hidden fields, nothing for the visitor to fill in. A script reads client_id and session_id out of the two first-party cookies GA4 writes, re-reads them at submit time, and sends them with the request to the backend. Both are optional: if the cookies are absent, they travel empty. The backend validates the format and writes to the internal record, and the same two values ride along on the dataLayer success event for GTM. GA4 itself was left alone, with no custom dimension registered."
 result: "Every submission now carries an identifier that matches a record in the GA4 export, provided the visitor's cookies survived their privacy settings or ad blocker. Form usability is unchanged: ad blockers, no-JS submissions and expired cookies were all tested, and the form still goes through."
-learned: "Two things worth remembering. The _ga_ cookie now ships the GS2 format, and a parser written for GS1 leaves session_id silently empty, with no error and nothing in any report, discoverable only by testing. And hidden fields can be edited by anyone, so the server has to validate the format itself. Separately: recording a value and being able to see it in GA4 are two different things, and without a custom dimension only BigQuery can answer."
-stack: ["GA4", "GTM", "Cloudflare Workers", "D1", "Notion", "BigQuery"]
+learned: "Two things worth remembering. The session number now ships the GS2 format, and a parser written for GS1 silently returns nothing, with no error and nothing in any report, discoverable only by testing. And hidden fields can be edited by anyone, so the backend has to validate the format itself. Separately: recording a value and being able to see it in GA4 are two different things, and without a custom dimension only BigQuery can answer."
+stack: ["GA4", "GTM", "BigQuery"]
 date: 2026-10-27
 ---
 
 ## Why no custom dimension
 
-In short: a custom dimension is the handful of columns you decided on in advance, while BigQuery is the raw data.
+client_id is one value per person, so its cardinality tracks your visitor count. GA4's report tables have a row limit: once a dimension produces more values than the table can hold, the surplus is not lost, but it gets folded into a single row called "(other)". You see the most common values and nothing else — the long tail dissolves into one line.
 
-Registering a user-scoped custom dimension does let you filter by it in Explorations. But what comes back is aggregated, sampled, and limited to the columns you already thought of. The moment the question becomes "how many steps did this person take from the landing page to here, and which posts did they read in between", it is back to BigQuery.
+Google's own guidance is that any dimension with more than 500 values should be treated as high cardinality. That 500 is a reference threshold, not a hard cap; the actual row limit depends on the report and the property type. What matters here is that client_id's cardinality follows traffic, so a site with any real volume crosses the line within a day.
 
-There is also a quota, and custom dimensions cannot be deleted once created, only archived. Get the name or scope wrong and you have effectively burned a slot. This field gets used a few times a year at most, which does not justify one.
+The practical outcome: **most of the list ends up inside "(other)", which is the same as not registering the dimension at all, minus one slot**. A standard report was never the place for a primary key.
 
-The cost is worth stating plainly: **without registration the value is invisible in the GA4 interface**. It is reachable only through the BigQuery export, or by exporting the D1 records and blending them with BigQuery results in Looker Studio.
+For detail there is exactly one route: the BigQuery export, which has no (other) row — every row is a raw event.
+
+The reverse also holds. If the only question is "which channel brings the most enquiries", the channel dimensions GA4 already has will answer it with no client_id involved. The one thing client_id buys is taking a specific person and asking what they read.
 
 ## Where the values come from
 
@@ -49,16 +52,11 @@ The fields are optional because all three of these happen, and none of them shou
 
 The third is the easy one to miss. It is not "the value is missing", it is "the value is there but belongs to a different person". The same visitor returning two weeks later has a new client_id, and tracing by client_id breaks in the middle.
 
-## The server does not trust the client
+## The backend does not trust the client
 
-Hidden fields are visible and editable, so a single request with a made-up value puts junk into Notion. The Worker therefore validates the shape and blanks anything that does not match:
+Hidden fields are visible and editable, so a single request with a made-up value writes junk into the internal record. The backend therefore validates the shape: anything that looks like a client_id is kept, anything else is treated as empty.
 
-```js
-const CLIENT_ID_RE = /^\d{1,20}\.\d{1,20}$/;
-const SESSION_ID_RE = /^\d{1,20}$/;
-```
-
-The rule behind it: **this field is a nice-to-have, and its failure must never affect receiving the enquiry itself**. The write to the database happens first; Notion and the email notification each fail independently without rolling back the main record, and the visitor never sees an error because of them.
+The rule behind it: **this field is a nice-to-have, and its failure must never affect receiving the enquiry itself**. The write happens first; downstream steps fail independently without rolling back the main record, and the visitor never sees an error because of them.
 
 ## How to actually use it
 
