@@ -435,6 +435,17 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
 }
 /* 四段正文走 <p>，不像 .markdown-body 那样有现成的段落规则，需要显式补排版 */
 .case-section p { margin: 0 0 1em; line-height: 1.8; }
+/* 小节内的细节块：正文按 `## 做法` 切开后挂回所属小节，直接沿用 .markdown-body
+   的表格/列表/<h3> 排版，只需压掉它与结论句之间的多余间距 */
+.case-section-detail > *:first-child { margin-top: 4px; }
+.case-section-detail h3 { font-size: 17px; margin-top: 1.4em; }
+/* 未归入四段的块（小结、附录、口径说明）：h2 与四段标题保持同一视觉，
+   否则同一页会出现两种标题样式 */
+.case-body-rest > h2 {
+  font-family: var(--serif); font-size: 20px; margin: 34px 0 12px;
+  padding-left: 12px; border-left: 4px solid var(--accent);
+  border-bottom: none; padding-bottom: 0;
+}
 
 /* =========================================================
    Hire me（首页底部 CTA + /hire 页共用）

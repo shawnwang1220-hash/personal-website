@@ -1,5 +1,5 @@
 ---
-import { getCollection, render } from "astro:content";
+import { getCollection } from "astro:content";
 import type { GetStaticPaths } from "astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Tag from "../../components/Tag.astro";
@@ -7,6 +7,7 @@ import HireCTA from "../../components/HireCTA.astro";
 import { SITE } from "../../site.config";
 import { getUiCopy, getSiteCopy } from "../../i18n/ui";
 import { withTrailingSlash } from "../../i18n/config";
+import { splitCaseBody } from "../../lib/case-body";
 
 export const getStaticPaths = (async () => {
   const items = await getCollection("cases");
@@ -21,9 +22,15 @@ const t = getUiCopy(lang);
 const copy = getSiteCopy(lang);
 
 const { item } = Astro.props;
-const { Content } = await render(item);
 const { title, summary, tags, metric, problem, approach, result, learned, stack, cover, coverAlt, date } =
   item.data;
+
+/**
+ * 正文按 `## ` 标题拆回四段：命中「问题 / 做法 / 结果 / 学到」的细节块跟随对应小节
+ * 渲染，未命中的块（附录、小结等）落在四段之后。拆不动就整块落到最后，
+ * 与旧案例的行为一致 —— 见 src/lib/case-body.ts。
+ */
+const body = splitCaseBody(item.body);
 
 const dateAttr = date.toISOString();
 const dateText = dateAttr.slice(0, 10);
@@ -40,13 +47,17 @@ const ogImageUrl = new URL(cover ?? SITE.ogImage[lang], SITE.url).href;
 /**
  * 四段结构化小节。空段直接跳过 —— 「结果 / 学到」按口径是二选一，
  * 不强制两段都有（强制只会逼出凑数内容，schema 已用 superRefine 保证至少一段）。
+ *
+ * detail 是该段的正文细节（正文里 `## 做法` 之类的块），没有就只渲染结论句。
  */
 const sections = [
-  { id: "problem", label: t.case.sectionProblem, body: problem },
-  { id: "approach", label: t.case.sectionApproach, body: approach },
-  { id: "result", label: t.case.sectionResult, body: result },
-  { id: "learned", label: t.case.sectionLearned, body: learned },
-].filter((s): s is { id: string; label: string; body: string } => Boolean(s.body));
+  { id: "problem", label: t.case.sectionProblem, body: problem, detail: body.sections.problem },
+  { id: "approach", label: t.case.sectionApproach, body: approach, detail: body.sections.approach },
+  { id: "result", label: t.case.sectionResult, body: result, detail: body.sections.result },
+  { id: "learned", label: t.case.sectionLearned, body: learned, detail: body.sections.learned },
+].filter(
+  (s): s is { id: string; label: string; body: string; detail: string | undefined } => Boolean(s.body)
+);
 
 /**
  * 本页专属节点。author / publisher 引用的 #person 由 BaseLayout 注入到同一份
@@ -126,13 +137,16 @@ const jsonLd = [
           <section class="case-section" id={s.id}>
             <h2>{s.label}</h2>
             <p>{s.body}</p>
+            {s.detail && <div class="markdown-body case-section-detail" set:html={s.detail} />}
           </section>
         ))
       }
 
-      <div class="markdown-body">
-        <Content />
-      </div>
+      {
+        body.rest && (
+          <div class="markdown-body case-body-rest" set:html={body.rest} />
+        )
+      }
 
       {
         stack.length > 0 && (
