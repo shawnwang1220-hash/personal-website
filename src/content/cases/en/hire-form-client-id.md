@@ -1,93 +1,89 @@
 ---
-title: "From cookie to lead record: the GA4 client_id"
-summary: "Capturing the GA4 client_id through a hidden form field, storing it with the lead record, and checking it against the value GA4 reports."
+title: "From browser cookie to lead record: capturing the GA4 Client ID in a form"
+summary: "Carrying the GA4 Client ID in a hidden field on this site's lead form so it is stored with the lead record, while GA4 event collection runs a separate GTM built-in variable path; both links verified independently."
 tags: ["GA4", "GTM", "Tracking"]
-metric: "0 new fields"
-problem: "GA4 records page views and form submissions, while lead records are stored elsewhere. Nothing in the two datasets can be matched to the other, so analysing a lead's behaviour before submission needs a key that exists in both."
-approach: "A hidden field carries the client_id into the lead record on submit, while the same value rides along on the form submission event for GA4. The field is optional, left empty when it cannot be read, and validated on the server."
-result: "The same client_id is retrievable from both the lead record and the GA4 event data, and the two values agree. Capture, transmission, storage and reporting were each verified."
-learned: "Three points: an identifier has to survive the whole chain to count as connected; the same identifier can serve two different pipelines; sending client_id as an event parameter does not make it usable as a dimension in GA4 reports."
-stack: ["GA4", "GTM"]
-date: 2026-10-27
+problem: "How does a website visitor's analytics identifier get linked to their lead record?"
+approach: "Connecting the browser side to the data collection side"
+result: "Capturing, passing on and persisting the Client ID"
+learned: "Capture, identity and behaviour analysis are different layers of the problem"
+stack: ["JavaScript", "Cloudflare Worker", "GTM", "GA4"]
+date: 2026-10-28
 ---
 
-## 1. The problem: linking on-site behaviour to the leads it produces
+## Problem
 
-GA4 records page views, form submissions and other on-site behaviour, but that data is normally stored separately from the lead information submitted through a form. Analysing what a lead did before converting requires an identifier that exists in both datasets.
+In this personal site's lead capture flow, the form submission needs to store the business information the visitor fills in, and it can also keep the anonymous client identifier GA4 uses — which gives later analysis of visitor behaviour against lead records a data basis.
 
-The GA4 Client ID identifies a browser across visits. Capturing it into the lead record provides a basis for that later analysis. This project set out to answer three questions:
+The project set out to answer three questions:
 
-- How is the GA4 Client ID obtained when a visitor submits a form?
-- How is it submitted alongside the form and stored with the lead record?
-- How is the stored value verified against the Client ID sent to GA4?
+- How is the GA4 Client ID obtained from the browser and brought into the form submission data?
+- How is that identifier passed to the backend alongside the other form fields, and persisted?
+- How are the identifier values in GA4's event collection and in the lead record verified?
 
-## 2. The approach: capture, transmit, store and verify
+## Approach
 
-### 2.1 Reading the Client ID from the browser cookie
+### 1. Reading the `_ga` cookie with JavaScript
 
-JavaScript reads the `_ga` cookie, parses out the GA4 Client ID, and writes it into a hidden form field. The visitor fills in and submits the form as usual, with no additional step.
+JavaScript reads the `_ga` cookie in the browser and parses out the Client ID.
 
-The `_ga` value takes the form `GA1.1.<part one>.<part two>`; joining the last two segments gives the Client ID.
+Because the value has to enter the form submission data rather than only exist as a temporary variable on the page, the extraction logic sits in the form data preparation stage, so the identifier leaves together with the business fields.
 
-The field is optional, and three situations leave it empty:
+The implementation has to account for a missing cookie, a failed read and a format change, so that an unavailable analytics identifier does not affect a normal form submission.
 
-| Situation | Cause |
-| --- | --- |
-| Ad blocker or privacy extension | `googletagmanager.com` is blocked, GA4 never initialises, the cookie is absent |
-| Submission without JavaScript | Native form post, the script never runs, the hidden field is an empty string |
-| Safari's ITP | First-party cookies expire after 7 days and are regenerated |
+### 2. Passing the Client ID through a hidden form field
 
-The third case needs separate mention. The cookie is still present, but it now carries a different Client ID. The same visitor returning a week later is a new identifier, and any lookup based on the old one breaks in the middle.
+The site's form was built with AI assistance and deploys on the personal site.
 
-**Format changes and the choice of approach**
+The parsed Client ID is written into a hidden form field so it is submitted together with the other fields the visitor fills in. The visitor does not need to type anything extra, and the normal form interaction is unchanged.
 
-The session identifier in the cookie has two formats: `GS1.1.<session>…` and `GS2.1.s<session>$…`, the latter with an additional `s` prefix. Parsing logic written for the first returns an empty value under the second, with no error raised anywhere.
+This design brings the browser-side analytics identifier into the existing data transmission path, without adding a separate user step just to collect it.
 
-A more robust approach now exists. In December 2025 GTM introduced built-in Client ID, Session ID and Session Number variables, which read GA4's internal state rather than parsing the cookie, and are therefore unaffected by format changes.
+### 3. Receiving and storing the lead in a Cloudflare Worker
 
-The container in this project does not have those built-in variables enabled, and using them to populate a form field requires an additional tag whose execution may land after the visitor has already submitted. Reading the cookie directly was chosen instead. This is a trade-off in approach, not a difference in difficulty.
+Form data is submitted to a Cloudflare Worker, which processes and stores it on the backend.
 
-### 2.2 Storing the Client ID with the lead record
+Lead data is persisted in two places. After going live, the Client ID could be seen in an actual lead record, confirming that the field had travelled from the browser into backend storage.
 
-On submission the form data is sent to the backend, processed and stored, with the Client ID written alongside the other fields. Inspecting an actual record confirms the value travelled from the browser into storage, rather than stopping at the page.
+That step completes the transfer of an anonymous client identifier from the browser environment to the lead data layer.
 
-Hidden fields are visible and editable, so the backend validates the format: values matching the Client ID shape are kept, everything else is treated as empty. The premise behind that check is that this field exists to support analysis, and its failure must not affect receiving the lead. The write happens first; downstream steps fail independently without rolling back the main record or surfacing an error to the visitor.
+### 4. Verifying event collection with GTM and GA4
 
-### 2.3 Reporting the Client ID to GA4 as an event parameter
+GA4 event collection takes a different, independent path: GTM's native built-in Client ID variable supplies the identifier, which is sent to GA4 as a custom parameter on the form submission event.
 
-On a successful submission an event is pushed to the dataLayer carrying the Client ID and Session ID as parameters, which GTM reads and sends to GA4.
+The submission event and its parameters are then checked in GA4 DebugView to confirm the collection path works.
 
-No custom dimension was registered in GA4, for reasons of cardinality. The Client ID is one value per person, so its cardinality equals the number of visitors. GA4 reports have a row limit; rows beyond it are not discarded but folded into a single "(other)" row, keeping only the most common values. Google's reference point for high cardinality is more than 500 values for a dimension. Registering it as a custom dimension would therefore put most records into "(other)", unusable for row-level analysis, while consuming one dimension slot.
+Two things need keeping apart here: the hidden field in the form passes the Client ID to the backend; the GTM built-in variable supplies the Client ID to the GA4 event. The two paths satisfy lead data storage and event data collection respectively.
 
-For detail, the BigQuery export provides it: `user_pseudo_id` is the Client ID.
+## Result
 
-### 2.4 Verifying agreement between the two pipelines
+What the project has completed and verified:
 
-Once configured, two places were checked:
+- Reading and parsing the `_ga` cookie in the browser with JavaScript.
+- Writing the Client ID into a hidden form field and submitting it with the form data.
+- Receiving the form data in a Cloudflare Worker and storing the Client ID in the lead record.
+- Sending the Client ID to GA4 as a custom parameter through the GTM built-in variable.
+- Confirming the submission event and its parameters in GA4 DebugView, and the Client ID in an actual lead record.
 
-- the lead record, which shows the Client ID stored at submission;
-- GA4 DebugView, where the submission event fires with the expected parameters.
+This stage delivered browser-side identifier capture and persistence into the lead data layer, with GA4 event collection verified. It did not implement the GA4 BigQuery Export join with lead records, and did not verify any effect of this data path on lead quality, opportunity conversion rate or revenue.
 
-Both pipelines in this project share a single cookie-parsing result, so agreement is guaranteed by the source rather than by coincidence. The verification confirms that the value survives submission, backend processing and storage without loss or truncation in transit.
+## Learned
 
-If the event-side value were later taken from GTM's built-in variable instead, the two pipelines would have different sources. Only then does cross-checking carry independent value, exposing things a single path cannot see, such as a rewritten cookie or a parsing error.
+### 1. Capturing an identifier is not the same as completing an identity link
 
-## 3. The result: a closed loop from browser identifier to lead record
+The Client ID is a candidate key for connecting browser behaviour to a lead record, but it does not by itself link the data in the two systems. Real analysis still has to confirm that the identifier matches on both ends, and deal with missing cookies, browser changes and duplicate submissions.
 
-All four stages were verified: the Client ID is parsed from the `_ga` cookie, submitted through a hidden field, stored by the backend and readable in the lead record, and appears as an event parameter in GA4 DebugView.
+### 2. GA4's native identifier and a custom parameter serve different purposes
 
-What this project delivered is data capture and pipeline verification. It did not implement the BigQuery join between behaviour and lead records, and it did not measure any effect on conversion rate or acquisition cost.
+GA4's native Client ID participates in client identification; sending it as a custom event parameter exists so that the value can be collected as event data.
 
-## 4. What I learned: capture working is not analysis working
+A custom dimension's scope decides how the data is used in reporting, and does not change how GA4 identifies a client in the first place. That is why capturing the Client ID is not on its own a reason to register it as a high-cardinality custom dimension.
 
-### 4.1 An identifier has to survive the whole chain
+### 3. Keeping the data basis for later cross-system behaviour analysis
 
-Being able to read an identifier in the browser says nothing about whether it reaches the business data. Only after confirming it survives submission, backend processing and storage is the pipeline actually connected.
+The next step can be the GA4 BigQuery Export: `user_pseudo_id`, `ga_session_id` and event timestamps from the exported events, matched against the Client ID and submission time in the lead records.
 
-### 4.2 The same identifier can serve different pipelines
+Once the matching rules are verified, the analysis can go further — the pages visited before submitting, the content engaged with, the channels arrived from — and how those behavioural traits line up with lead quality and opportunity outcomes in the CRM.
 
-Lead capture and event reporting serve different purposes and can share one value. When the source is shared, agreement is structural; when sources differ, cross-checking becomes meaningful on its own. Distinguishing the two decides how much the verification is actually worth.
+That is the direction for the next stage, not something this project has already completed.
 
-### 4.3 Capture is not the same as analysability
-
-Sending the Client ID as an event parameter does not make it usable as a dimension in GA4's standard reports. A high-cardinality dimension gets folded into "(other)" once the row limit is reached. Row-level joining requires the BigQuery export. That is a further extension, outside what this project delivered.
+**The core value of this project is to bring the GA4 client identifier from the browser into the lead data layer, and to verify an independent GA4 event collection path, laying the technical groundwork for later connecting on-site behaviour with lead records.**
