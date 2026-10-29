@@ -982,8 +982,28 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
   body #cc-main .cm--bar .cm__btns > .cm__btn-group {
     flex: 2 1 0;
     flex-direction: row !important;
+    /*
+     * 同一条库规则也作用于「相邻的组」：
+     *   #cc-main .cm__btn-group+.cm__btn-group { margin: .375rem 0 0 !important }
+     * 第二个组因此被压 6px，里面的「自定义」始终比另两个矮一截。
+     */
+    margin: 0 !important;
   }
   body #cc-main .cm--bar .cm__btns > .cm__btn-group:last-child { flex: 1 1 0; }
-  /* 桌面那条 7em 在这里会把按钮顶出容器，取消掉 */
-  body #cc-main .cm--bar .cm__btn { min-width: 0; }
+  /*
+   * 库有一条全局规则给「第二个及之后的按钮」加行间距：
+   *   #cc-main .cm__btn+.cm__btn { margin: .375rem 0 0 !important }
+   * 横排后它把「关闭分析」压低 6px：组高被撑到 46，「保持开启」被 stretch
+   * 拉满 46，另外两个仍是 40 —— 看起来就是大小不齐。
+   * 它也带 !important，所以必须对等还击才能清掉。
+   */
+  /*
+   * 对齐链：外层两组之间、组内按钮之间都要 stretch，三个按钮才会被拉到
+   * 同一高度。「自定义」单独在一个组里，链断在这里就会矮 6px、底边对齐。
+   */
+  body #cc-main .cm--bar .cm__btns,
+  body #cc-main .cm--bar .cm__btns > .cm__btn-group { align-items: stretch; }
+  body #cc-main .cm--bar .cm__btns > .cm__btn-group > .cm__btn { margin: 0 !important; }
+  /* 桌面那条 7em 在这里会把按钮顶出容器，取消掉；高度统一兜到 48px */
+  body #cc-main .cm--bar .cm__btn { min-width: 0; min-height: 48px; }
 }
