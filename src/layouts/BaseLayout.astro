@@ -2,6 +2,8 @@
 import "../styles/global.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import ConsentBanner from "../components/ConsentBanner.astro";
+import { CMP } from "../lib/consent";
 import { SITE } from "../site.config";
 import { getSiteCopy } from "../i18n/ui";
 import { LANG_META, getLangFromPath, swapLangPath, withTrailingSlash } from "../i18n/config";
@@ -223,6 +225,64 @@ const DIAG_PROBE = false;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    {/* ════════ Consent Mode v2 默认信号 —— 必须早于 GTM（BEGIN） ════════ */}
+    {/*
+      这段必须同步执行、并且排在 GTM 加载之前。GTM 一旦先跑起来，容器就以
+      「无同意状态」落地，首个 page_view 的 cookie 写入资格已经定死，之后再
+      补 consent update 只能补后续事件 —— 首次命中永久失真。
+
+      做两件事：
+        1. 把 consent default 推进 dataLayer（advance 模式：GTM 照常加载，
+           denied 状态下不发 cookie，只发无 cookie 的 ping 用于建模）；
+        2. 预读上次的同意结果，避免回访用户每次加载都被降级为 denied。
+    */}
+    {
+      SITE.consent.enabled && (
+        <script is:inline define:vars={{ ccKey: CMP.storageKey, ccRevision: CMP.revision }}>
+          (function () {
+            var w = window;
+            w.dataLayer = w.dataLayer || [];
+            /* 与 GTM 容器共用一个 dataLayer；gtag 已存在则不覆盖 */
+            if (!w.gtag) {
+              w.gtag = function () {
+                w.dataLayer.push(arguments);
+              };
+            }
+
+            /*
+             * 预读：库存的 cookie 是 { categories: string[], revision: number, … }
+             * 的 URL 编码 JSON。revision 不一致 = 数据处理方式已变更，旧授权不
+             * 覆盖新用途，按未同意处理。
+             */
+            var granted = false;
+            try {
+              var m = document.cookie.match(new RegExp("(?:^|;\\s*)" + ccKey + "=([^;]*)"));
+              if (m) {
+                var d = JSON.parse(decodeURIComponent(m[1]));
+                var cats = d && d.categories;
+                granted = !!(cats && cats.indexOf("analytics") !== -1 && d.revision === ccRevision);
+              }
+            } catch (e) {}
+
+            w.gtag("consent", "default", {
+              /* 本站没有广告投放，ad_* 三项恒为 denied，不与 analytics 捆绑 */
+              ad_storage: "denied",
+              ad_user_data: "denied",
+              ad_personalization: "denied",
+              analytics_storage: granted ? "granted" : "denied",
+              /* 主题偏好属于站点自身功能，不是追踪，始终放行 */
+              functionality_storage: "granted",
+              personalization_storage: "denied",
+              security_storage: "granted",
+              /* 给 CMP 留 500ms 窗口：库初始化慢半拍时，首个事件不至于被误判 */
+              wait_for_update: 500,
+            });
+          })();
+        </script>
+      )
+    }
+    {/* ════════ Consent Mode v2 默认信号（END） ════════ */}
 
     {/* ════════ GA4 page_view 诊断插桩 —— 2026-09-23 起停用，代码整段保留（BEGIN） ════════ */}
     {/* 开关是 frontmatter 的 DIAG_PROBE。为 false 时这段 <script> 不进构建产物，浏览器也
@@ -528,5 +588,9 @@ const DIAG_PROBE = false;
     </main>
 
     <Footer lang={lang} />
+
+    {/* 同意横幅。放在 Footer 之后：它覆盖在内容上层，DOM 顺序不影响
+        可见性，但能让 <main> 的内容在文档流中保持完整。 */}
+    {SITE.consent.enabled && <ConsentBanner lang={lang} />}
   </body>
 </html>

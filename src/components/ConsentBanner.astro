@@ -1,0 +1,248 @@
+---
+/**
+ * Cookie 同意横幅（CMP）—— vanilla-cookieconsent v3 的自托管封装。
+ *
+ * 为什么用这个库而不是从零写：合规内核（类别状态机、偏好中心、脚本拦截、
+ * 撤回后清 cookie）有大量边界情况，自己写等于重造一个半成品；而 UI、文案、
+ * 与 GTM 的对接必须由本站掌控，商业 CMP 给不了。所以分工是：内核用库，
+ * 封装层自己写。
+ *
+ * 与 GTM 的配合分两段，缺一不可：
+ *   1. <head> 最前面的 inline script（在 BaseLayout 里）—— 在 GTM 之前把
+ *      Consent Mode 的 default 信号推进 dataLayer。这一步慢一拍，GTM 就会
+ *      先落地一个无 consent 状态的容器，首次命中全部失真。
+ *   2. 本组件的 onConsent / onChange —— 用户表态后发 consent update。
+ *
+ * 库自身不处理深浅色：它只认 html 上的 .cc--darkmode，而本站的主题机制是
+ * data-theme 属性。两者必须显式同步，否则深色站点会弹出一个白底横幅。
+ */
+import "vanilla-cookieconsent/dist/cookieconsent.css";
+import { CMP } from "../lib/consent";
+import { SITE } from "../site.config";
+import { getUiCopy } from "../i18n/ui";
+import type { Lang } from "../i18n/config";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+
+const copy = getUiCopy(lang).consent;
+
+/** 库按 <html lang> 的原值匹配翻译键：中文站是 zh-CN，英文站是 en */
+const locale = lang === "en" ? "en" : "zh-CN";
+
+/**
+ * 交给浏览器端的纯数据。
+ *
+ * 走「独立 JSON script + module script 读取」而不是 define:vars 注入：
+ * define:vars 会把目标 script 降级成 is:inline，那样就无法 import 库了。
+ */
+const payload = {
+  locale,
+  revision: CMP.revision,
+  expiresAfterDays: CMP.expiresAfterDays,
+  storageKey: CMP.storageKey,
+  privacyPath: SITE.consent.privacyPath,
+  copy,
+};
+
+/**
+ * 序列化时把 `<` 转成 \u003c —— 文案里一旦出现 `</script>` 会提前闭合标签，
+ * 整段配置静默失效。当前文案没有，但这条防线不能靠「记得别写」。
+ */
+const payloadJson = JSON.stringify(payload).replace(/</g, "\\u003c");
+---
+
+<script type="application/json" id="cmp-config" set:html={payloadJson} />
+
+<script>
+  import * as CookieConsent from "vanilla-cookieconsent";
+
+  interface CmpPayload {
+    locale: string;
+    revision: number;
+    expiresAfterDays: number;
+    storageKey: string;
+    privacyPath: string;
+    copy: {
+      title: string;
+      description: string;
+      acceptAll: string;
+      acceptNecessary: string;
+      manage: string;
+      prefsTitle: string;
+      save: string;
+      close: string;
+      necessaryTitle: string;
+      necessaryDesc: string;
+      analyticsTitle: string;
+      analyticsDesc: string;
+      tableCaption: string;
+      colName: string;
+      colPurpose: string;
+      colDuration: string;
+      rows: { name: string; purpose: string; duration: string }[];
+      privacyLink: string;
+    };
+  }
+
+  const node = document.getElementById("cmp-config");
+
+  if (node?.textContent) {
+    const cfg = JSON.parse(node.textContent) as CmpPayload;
+    const { copy } = cfg;
+
+    /* ── 主题同步 ──────────────────────────────────────────────────
+       首屏由 BaseLayout 的渲染前脚本设好 data-theme，这里只做校准；
+       之后靠 MutationObserver 跟随页头的主题切换按钮。 */
+    const root = document.documentElement;
+    const syncDark = () => {
+      root.classList.toggle("cc--darkmode", root.getAttribute("data-theme") === "dark");
+    };
+    syncDark();
+    new MutationObserver(syncDark).observe(root, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    /* ── Consent Mode 桥接 ────────────────────────────────────────
+       gtag 由 BaseLayout 在 GTM 之前挂到 window，必然存在；兜底保留，
+       是为了组件被单独复用时不至于静默失败。 */
+    const gtag: (...args: unknown[]) => void =
+      (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag ??
+      ((...args: unknown[]) => {
+        const w = window as unknown as { dataLayer: unknown[] };
+        w.dataLayer = w.dataLayer || [];
+        w.dataLayer.push(args);
+      });
+
+    /**
+     * 只上报 analytics 一个类别。
+     * 广告三项恒为 denied —— 本站没有广告投放，把它们跟着 analytics 一起
+     * 放开，等于凭空扩大了授权范围。
+     */
+    const pushConsent = (categories: string[]) => {
+      const analytics = categories.includes("analytics");
+      gtag("consent", "update", {
+        analytics_storage: analytics ? "granted" : "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+      });
+    };
+
+    CookieConsent.run({
+      /**
+       * opt-in：脚本必须等用户接受对应类别才运行。
+       * 改成 opt-out 在 EU/UK 不成立（默认即收集，属于未经同意）。
+       */
+      mode: "opt-in",
+      revision: cfg.revision,
+      autoShow: true,
+      /* 爬虫不生成横幅 DOM —— 对 SEO/GEO 无收益，只是白跑一遍库的逻辑 */
+      hideFromBots: true,
+
+      cookie: {
+        name: cfg.storageKey,
+        expiresAfterDays: cfg.expiresAfterDays,
+        sameSite: "Lax",
+        secure: true,
+      },
+
+      categories: {
+        necessary: {
+          enabled: true,
+          readOnly: true,
+        },
+        analytics: {
+          enabled: false,
+          /**
+           * 用户拒绝或事后撤回时，清掉 GA4 已经写进浏览器的 cookie。
+           * 必须用正则：GA4 的第二个 cookie 名带容器 ID（_ga_XXXXXXXX），
+           * 静态站在构建期拿不到它，写死字符串必然漏清。
+           */
+          autoClear: {
+            cookies: [{ name: /^_ga/ }, { name: /^_gid/ }, { name: /^_gat/ }],
+          },
+        },
+      },
+
+      language: {
+        default: cfg.locale,
+        translations: {
+          [cfg.locale]: {
+            consentModal: {
+              title: copy.title,
+              description: copy.description,
+              acceptAllBtn: copy.acceptAll,
+              acceptNecessaryBtn: copy.acceptNecessary,
+              showPreferencesBtn: copy.manage,
+              ...(cfg.privacyPath
+                ? { footer: `<a href="${cfg.privacyPath}">${copy.privacyLink}</a>` }
+                : {}),
+            },
+            preferencesModal: {
+              title: copy.prefsTitle,
+              acceptAllBtn: copy.acceptAll,
+              acceptNecessaryBtn: copy.acceptNecessary,
+              savePreferencesBtn: copy.save,
+              closeIconLabel: copy.close,
+              sections: [
+                {
+                  title: copy.necessaryTitle,
+                  description: copy.necessaryDesc,
+                  linkedCategory: "necessary",
+                },
+                {
+                  title: copy.analyticsTitle,
+                  description: copy.analyticsDesc,
+                  linkedCategory: "analytics",
+                  cookieTable: {
+                    caption: copy.tableCaption,
+                    headers: {
+                      name: copy.colName,
+                      purpose: copy.colPurpose,
+                      duration: copy.colDuration,
+                    },
+                    body: copy.rows.map((r) => ({
+                      name: r.name,
+                      purpose: r.purpose,
+                      duration: r.duration,
+                    })),
+                  },
+                },
+              ],
+            },
+          },
+        },
+      },
+
+      guiOptions: {
+        consentModal: {
+          layout: "box",
+          position: "bottom left",
+          /* 接受与拒绝等宽 —— 把拒绝做成次要按钮是典型的暗模式，不合规 */
+          equalWeightButtons: true,
+        },
+        preferencesModal: {
+          layout: "box",
+          equalWeightButtons: false,
+        },
+      },
+
+      /* 已有授权时页面加载即触发，保证回访用户的 consent update 不会缺失 */
+      onConsent: ({ cookie }) => pushConsent(cookie.categories),
+      onChange: ({ cookie }) => pushConsent(cookie.categories),
+    });
+
+    /* 页脚等处的「Cookie 设置」入口：用属性绑定，不依赖库的声明式写法 */
+    document.querySelectorAll("[data-cc-open]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        CookieConsent.showPreferences();
+      });
+    });
+  }
+</script>

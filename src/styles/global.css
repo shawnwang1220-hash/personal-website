@@ -298,6 +298,12 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
 .footer-inner a { color: var(--muted); }
 .footer-inner a:hover { color: var(--accent); }
 .footer-sub { margin: 6px 0 0; }
+/* 「Cookie 偏好设置」入口：行为是按钮（改设置），外观要与旁边的链接一致 */
+.footer-inner .footer-link-btn {
+  background: none; border: 0; padding: 0; font: inherit; color: var(--muted);
+  cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.footer-inner .footer-link-btn:hover { color: var(--accent); }
 .back-to-top {
   position: fixed; right: 22px; bottom: 22px; z-index: 40;
   width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
@@ -813,3 +819,79 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
     text-transform: uppercase; color: var(--muted);
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Cookie 同意横幅（vanilla-cookieconsent v3）
+
+   颜色一律映射到本站变量，不单独写亮/暗两套 —— --surface / --ink 这些本身
+   随 [data-theme] 切换，映射一次两种主题自动都对。
+   用 #cc-main 这个 ID 选择器：特异性高于库的 .cc--darkmode，覆盖稳定生效。
+   库里那套 .cc--darkmode 变量因此不参与配色，只用于开启 color-scheme:
+   dark（让滚动条、原生控件跟着变暗），那个类由组件同步 data-theme 挂上。
+   ══════════════════════════════════════════════════════════════════════ */
+#cc-main {
+  --cc-font-family: var(--font, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif);
+
+  /* 面板与文字 */
+  --cc-bg: var(--surface);
+  --cc-primary-color: var(--ink);
+  --cc-secondary-color: var(--muted);
+  --cc-link-color: var(--accent);
+
+  /* 分隔线与类别卡片 */
+  --cc-separator-border-color: var(--line);
+  --cc-section-category-border: var(--line);
+  --cc-cookie-category-block-bg: var(--soft);
+  --cc-cookie-category-block-border: var(--line);
+  --cc-cookie-category-block-hover-bg: var(--tag);
+  --cc-cookie-category-block-hover-border: var(--accent);
+  --cc-cookie-category-expanded-block-bg: var(--surface);
+  --cc-cookie-category-expanded-block-hover-bg: var(--soft);
+
+  /* 主按钮：接受 */
+  --cc-btn-primary-bg: var(--accent);
+  --cc-btn-primary-color: var(--accent-ink);
+  --cc-btn-primary-border-color: var(--accent);
+  --cc-btn-primary-hover-bg: var(--ink);
+  --cc-btn-primary-hover-color: var(--bg);
+  --cc-btn-primary-hover-border-color: var(--ink);
+
+  /* 次按钮：拒绝 / 自定义。与主按钮同权重，不做视觉弱化 */
+  --cc-btn-secondary-bg: var(--tag);
+  --cc-btn-secondary-color: var(--ink);
+  --cc-btn-secondary-border-color: var(--line);
+  --cc-btn-secondary-hover-bg: var(--soft);
+  --cc-btn-secondary-hover-color: var(--ink);
+  --cc-btn-secondary-hover-border-color: var(--muted);
+
+  /* 开关 */
+  --cc-toggle-on-bg: var(--accent);
+  --cc-toggle-off-bg: var(--muted);
+  --cc-toggle-on-knob-bg: var(--accent-ink);
+  --cc-toggle-off-knob-bg: var(--surface);
+  --cc-toggle-readonly-bg: var(--tag);
+  --cc-toggle-readonly-knob-bg: var(--muted);
+  --cc-toggle-enabled-icon-color: var(--accent-ink);
+  --cc-toggle-disabled-icon-color: var(--surface);
+
+  /* 页脚与遮罩 */
+  --cc-footer-bg: var(--soft);
+  --cc-footer-color: var(--muted);
+  --cc-footer-border-color: var(--line);
+  --cc-overlay-bg: rgba(23, 28, 25, 0.55);
+  --cc-webkit-scrollbar-bg: var(--line);
+  --cc-webkit-scrollbar-hover-bg: var(--muted);
+
+  /* 形状：与站点卡片、按钮保持同一套圆角语言 */
+  --cc-modal-border-radius: var(--radius);
+  --cc-btn-border-radius: var(--radius-pill);
+  --cc-pm-toggle-border-radius: var(--radius-pill);
+}
+
+/*
+ * 横幅按钮排布：库默认竖排（.cm__btn-group 是单列 grid），三个按钮叠成
+ * 三行，在 800px 高的视口里横幅会吃掉近三分之一屏高、直接压住首屏 CTA。
+ * 改成两列 —— 接受与拒绝并排且等宽，仍满足「拒绝不得弱化」的要求，
+ * 「自定义」独占下一行。
+ */
+#cc-main .cm__btn-group { grid-auto-flow: column; }

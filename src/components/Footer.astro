@@ -19,7 +19,19 @@ const host = new URL(SITE.url).host;
 <footer class="site-footer">
   <div class="container footer-inner">
     <p>{t.footer.copyright(year)} · {host}</p>
-    <p class="footer-sub"><a href={`${langPrefix}/rss.xml`}>{t.footer.rss}</a></p>
+    <p class="footer-sub">
+      <a href={`${langPrefix}/rss.xml`}>{t.footer.rss}</a>
+      {/* 撤回入口。合规要求「同意后可随时撤回」，只弹一次横幅是不够的 ——
+          用户事后想看/改设置，必须有一个常驻入口。 */}
+      {SITE.consent.enabled && SITE.consent.showReopenLink && (
+        <>
+          <span aria-hidden="true"> · </span>
+          <button type="button" class="footer-link-btn" data-cc-open>
+            {t.consent.prefsTitle}
+          </button>
+        </>
+      )}
+    </p>
   </div>
 </footer>
 
