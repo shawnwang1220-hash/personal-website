@@ -229,9 +229,10 @@ const payloadJson = JSON.stringify(payload).replace(/</g, "\\u003c");
 
       guiOptions: {
         consentModal: {
-          layout: "box",
-          position: "bottom left",
-          /* 接受与拒绝等宽 —— 把拒绝做成次要按钮是典型的暗模式，不合规 */
+          /* 底部通栏：贴屏底、内容居中限宽，比浮层盒子遮挡更少 */
+          layout: "bar",
+          position: "bottom",
+          /* 三个按钮等宽，避免「关闭分析」被挤成小按钮变相诱导 */
           equalWeightButtons: true,
         },
         preferencesModal: {

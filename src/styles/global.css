@@ -889,9 +889,101 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
 }
 
 /*
- * 横幅按钮排布：库默认竖排（.cm__btn-group 是单列 grid），三个按钮叠成
- * 三行，在 800px 高的视口里横幅会吃掉近三分之一屏高、直接压住首屏 CTA。
- * 改成两列 —— 接受与拒绝并排且等宽，仍满足「拒绝不得弱化」的要求，
- * 「自定义」独占下一行。
+ * ── 底部通栏（bar）的按钮排布与配色 ─────────────────────────────────
+ *
+ * 三个按钮同为一行：保持开启 | 关闭分析 | 自定义。
+ *
+ * 「接受绿、其余浅」这条分工受库的结构限制：acceptAllBtn 与
+ * acceptNecessaryBtn 共用同一个 .cm__btn 类，库里没有语义修饰类
+ * （只有「自定义」带 --secondary）。所以要单独给「关闭分析」上浅色，
+ * 只能按位置选 —— btn-group 里的最后一个。代价是按钮顺序一变这里就
+ * 错位；好在错位在视觉上一眼可见，不会静默失效。
  */
-#cc-main .cm__btn-group { grid-auto-flow: column; }
+#cc-main .cm--bar .cm__btns > .cm__btn-group:first-child > .cm__btn:last-child {
+  background: var(--tag);
+  border-color: var(--line);
+  color: var(--ink);
+}
+#cc-main .cm--bar .cm__btns > .cm__btn-group:first-child > .cm__btn:last-child:hover {
+  background: var(--soft);
+  border-color: var(--muted);
+  color: var(--ink);
+}
+
+/*
+ * 等高：三个按钮的字数不同（英文 Turn off analytics 还会折行），不显式
+ * 居中拉伸就会一高一矮。min-height 同时兜住 40px 的触控目标下限。
+ */
+#cc-main .cm--bar .cm__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+}
+
+/*
+ * 桌面端改成「左文字、右按钮」的横带。
+ *
+ * 库的 bar 默认把文字和按钮上下堆叠，在宽屏上会变成两段、按钮被
+ * justify-content: space-between 推到最右，中间空出一大片。横排后高度
+ * 少一截，也才像一条真正的通栏。
+ * 窄屏不加这条规则 —— 移动端保持上下堆叠，按钮更好点。
+ */
+@media (min-width: 900px) {
+  /*
+   * 选择器统一带 body 前缀：库的 #cc-main .cm--bar .cm__body 与本文件同
+   * 特异性，谁赢取决于打包顺序 —— 不加这一层，max-width 会被库还原成
+   * 55em，文字列被挤窄、描述多折一行。
+   */
+  body #cc-main .cm--bar .cm__body {
+    display: flex;
+    /* 库在这里是 column（上下堆叠），只改 display 不够，方向必须显式覆盖 */
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 1.1em 0;
+    max-width: 72em;
+  }
+  body #cc-main .cm--bar .cm__texts {
+    flex: 1 1 auto;
+    /* 允许收缩，否则长文案会把按钮挤出容器 */
+    min-width: 0;
+  }
+  body #cc-main .cm--bar .cm__btns {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+  }
+  body #cc-main .cm--bar .cm__title { margin-bottom: 0.25em; }
+  body #cc-main .cm--bar .cm__desc { margin: 0; }
+  /* 三个按钮统一最小宽度，消掉 6px 级的参差 */
+  body #cc-main .cm--bar .cm__btn { min-width: 7em; }
+}
+
+/*
+ * 窄屏也保持一行：库在这个宽度会把按钮改成竖排，三个按钮叠出两行多余
+ * 高度。改回横排后每个按钮约 110px，「保持开启」「关闭分析」都放得下。
+ * 组 1 装两个按钮、组 2 装一个，按 2:1 分配宽度，最终三个按钮各占 1/3。
+ */
+@media (max-width: 640px) {
+  /*
+   * 必须用 !important：库在窄屏那条规则本身就是
+   *   .cm__btns { flex-direction: column !important; ... }
+   * 特异性再高也压不过 !important，只能对等还击。
+   * 这是唯一一处靠「对抗」拿到样式的属性，将来库升级需要重点回归。
+   */
+  body #cc-main .cm--bar .cm__btns { flex-direction: row !important; }
+  /*
+   * 组内还要单独压一次：真机上量过，库在窄屏把这个组从 grid 换成
+   * flex + column，所以 grid-auto-flow 在这里无效，必须改 flex-direction。
+   * 不修的话外层虽然是 row，组内两个按钮仍竖排，「自定义」还会被 stretch
+   * 拉成两行高。
+   */
+  body #cc-main .cm--bar .cm__btns > .cm__btn-group {
+    flex: 2 1 0;
+    flex-direction: row !important;
+  }
+  body #cc-main .cm--bar .cm__btns > .cm__btn-group:last-child { flex: 1 1 0; }
+  /* 桌面那条 7em 在这里会把按钮顶出容器，取消掉 */
+  body #cc-main .cm--bar .cm__btn { min-width: 0; }
+}
