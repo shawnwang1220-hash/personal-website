@@ -233,9 +233,9 @@ const DIAG_PROBE = false;
       补 consent update 只能补后续事件 —— 首次命中永久失真。
 
       做两件事：
-        1. 把 consent default 推进 dataLayer（advance 模式：GTM 照常加载，
+        1. 把 consent default 推进 dataLayer（advanced 模式：GTM 照常加载，
            denied 状态下不发 cookie，只发无 cookie 的 ping 用于建模）；
-        2. 预读上次的同意结果，避免回访用户每次加载都被降级为 denied。
+        2. 预读上次的选择 —— opt-out 下只有「明确拒绝过」才算 denied。
     */}
     {
       SITE.consent.enabled && (
@@ -252,16 +252,22 @@ const DIAG_PROBE = false;
 
             /*
              * 预读：库存的 cookie 是 { categories: string[], revision: number, … }
-             * 的 URL 编码 JSON。revision 不一致 = 数据处理方式已变更，旧授权不
-             * 覆盖新用途，按未同意处理。
+             * 的 URL 编码 JSON。
+             *
+             * opt-out 语义，判断方向与 opt-in 相反：只有「用户明确拒绝过」
+             * 才判 denied，其余（无 cookie、已开启、版本号不符）一律 granted。
+             *
+             * 版本不符时给 granted 是自洽的：新政策本身就是默认开启，库会重新
+             * 弹窗告知，用户关掉横幅即等于接受这个默认。反过来若在这里给
+             * denied，就会出现横幅说「默认开启」、GTM 收到 denied 的静默失效。
              */
-            var granted = false;
+            var denied = false;
             try {
               var m = document.cookie.match(new RegExp("(?:^|;\\s*)" + ccKey + "=([^;]*)"));
               if (m) {
                 var d = JSON.parse(decodeURIComponent(m[1]));
                 var cats = d && d.categories;
-                granted = !!(cats && cats.indexOf("analytics") !== -1 && d.revision === ccRevision);
+                denied = !!(cats && d.revision === ccRevision && cats.indexOf("analytics") === -1);
               }
             } catch (e) {}
 
@@ -270,13 +276,11 @@ const DIAG_PROBE = false;
               ad_storage: "denied",
               ad_user_data: "denied",
               ad_personalization: "denied",
-              analytics_storage: granted ? "granted" : "denied",
+              analytics_storage: denied ? "denied" : "granted",
               /* 主题偏好属于站点自身功能，不是追踪，始终放行 */
               functionality_storage: "granted",
               personalization_storage: "denied",
               security_storage: "granted",
-              /* 给 CMP 留 500ms 窗口：库初始化慢半拍时，首个事件不至于被误判 */
-              wait_for_update: 500,
             });
           })();
         </script>

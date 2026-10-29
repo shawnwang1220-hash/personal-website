@@ -499,9 +499,9 @@ const UI_ZH: UiCopy = {
   consent: {
     title: "Cookie 与数据收集",
     description:
-      "本站用 Google Analytics 4 了解哪些文章有人读、访客从哪里来。分析类 Cookie 仅在你同意后写入，拒绝不影响阅读。",
-    acceptAll: "全部接受",
-    acceptNecessary: "仅必要",
+      "本站默认用 Google Analytics 4 统计阅读情况：哪些文章有人读、访客从哪里来。你可以随时关闭，关闭后立即停止收集并清除已写入的分析 Cookie。",
+    acceptAll: "保持开启",
+    acceptNecessary: "关闭分析",
     manage: "自定义",
     prefsTitle: "Cookie 偏好设置",
     save: "保存选择",
@@ -510,7 +510,7 @@ const UI_ZH: UiCopy = {
       "维持站点基本功能：记住你的深浅色主题选择，以及这次的 Cookie 决定。无法关闭。",
     analyticsTitle: "分析",
     analyticsDesc:
-      "通过 Google Analytics 4 统计浏览量、来源渠道与阅读深度。数据以聚合形式用于判断哪些内容值得继续写，不用于广告投放，也不与第三方共享。",
+      "统计浏览量、来源渠道与阅读深度。默认开启，可随时关闭；关闭后本类别下的 Cookie 会被清除。数据以聚合形式使用，不用于广告投放，也不与第三方共享。",
     ga4Label: "Google Analytics 4",
     tableCaption: "本站写入的 Cookie",
     colName: "名称",
@@ -774,9 +774,9 @@ const UI_EN: UiCopy = {
   consent: {
     title: "Cookies & data collection",
     description:
-      "Google Analytics 4 shows which posts get read and where visitors come from. Analytics cookies are written only after you agree — declining changes nothing you can read.",
-    acceptAll: "Accept all",
-    acceptNecessary: "Necessary only",
+      "Google Analytics 4 runs by default to see which posts get read and where visitors come from. You can turn it off at any time — that stops collection and clears the analytics cookies already set.",
+    acceptAll: "Keep it on",
+    acceptNecessary: "Turn off analytics",
     manage: "Customize",
     prefsTitle: "Cookie preferences",
     save: "Save choices",
@@ -785,7 +785,7 @@ const UI_EN: UiCopy = {
       "Keeps the site working: remembers your light/dark theme choice and this cookie decision. Cannot be switched off.",
     analyticsTitle: "Analytics",
     analyticsDesc:
-      "Google Analytics 4 counts page views, referral sources and reading depth. The data is used in aggregate to decide what to write next — never for advertising, and never shared with third parties.",
+      "Counts page views, referral sources and reading depth. On by default; turning it off clears the cookies in this category. Used in aggregate — never for advertising, never shared.",
     ga4Label: "Google Analytics 4",
     tableCaption: "Cookies set by this site",
     colName: "Name",

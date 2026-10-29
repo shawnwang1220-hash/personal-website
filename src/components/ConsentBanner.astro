@@ -135,10 +135,17 @@ const payloadJson = JSON.stringify(payload).replace(/</g, "\\u003c");
 
     CookieConsent.run({
       /**
-       * opt-in：脚本必须等用户接受对应类别才运行。
-       * 改成 opt-out 在 EU/UK 不成立（默认即收集，属于未经同意）。
+       * opt-out：分析默认开启，用户主动关闭才停止。
+       *
+       * 取舍：EU/UK 对分析类 Cookie 要求 opt-in，opt-out 在那里不构成有效
+       * 同意。这是个人站的主动选择 —— 换来数据的连续性（不依赖访客点按钮），
+       * 代价是 EEA 的合规强度下降。
+       *
+       * 改回 opt-in 时需要同步三处，漏一处就会出现「横幅说开着、GTM 收到
+       * denied」的静默失效：本行、下面 analytics.enabled、以及 BaseLayout
+       * 里 consent default 的预读方向。
        */
-      mode: "opt-in",
+      mode: "opt-out",
       revision: cfg.revision,
       autoShow: true,
       /* 爬虫不生成横幅 DOM —— 对 SEO/GEO 无收益，只是白跑一遍库的逻辑 */
@@ -157,7 +164,8 @@ const payloadJson = JSON.stringify(payload).replace(/</g, "\\u003c");
           readOnly: true,
         },
         analytics: {
-          enabled: false,
+          /* opt-out 的前提：类别默认开启，只有用户明确拒绝才关 */
+          enabled: true,
           /**
            * 用户拒绝或事后撤回时，清掉 GA4 已经写进浏览器的 cookie。
            * 必须用正则：GA4 的第二个 cookie 名带容器 ID（_ga_XXXXXXXX），
@@ -232,8 +240,14 @@ const payloadJson = JSON.stringify(payload).replace(/</g, "\\u003c");
         },
       },
 
-      /* 已有授权时页面加载即触发，保证回访用户的 consent update 不会缺失 */
-      onConsent: ({ cookie }) => pushConsent(cookie.categories),
+      /*
+       * 只挂 onChange，不挂 onConsent。
+       *
+       * 页面加载时的状态已由 BaseLayout 的 inline script 预读并写进 default，
+       * onConsent 再推一次只是往 dataLayer 里塞一条同值事件；而用户点按钮时
+       * onConsent 与 onChange 会同时触发，等于一次操作推两条（实测确认过）。
+       * 所以这里只保留 onChange。
+       */
       onChange: ({ cookie }) => pushConsent(cookie.categories),
     });
 
