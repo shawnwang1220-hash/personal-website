@@ -255,6 +255,39 @@ export interface UiCopy {
     home: string;
     posts: string;
   };
+  /**
+   * Cookie 同意横幅文案。
+   *
+   * 措辞原则（不是风格偏好，是合规要求）：
+   *   - 「仅必要」与「全部接受」必须同等显眼，不能把拒绝做成次要选项误导点击；
+   *   - 说明里要写清「用来做什么」「不同意有什么后果」，而不是笼统的
+   *     「我们重视您的隐私」；
+   *   - 不写「使用本站即视为同意」—— 那不是有效同意。
+   */
+  consent: {
+    title: string;
+    description: string;
+    acceptAll: string;
+    acceptNecessary: string;
+    manage: string;
+    prefsTitle: string;
+    save: string;
+    necessaryTitle: string;
+    necessaryDesc: string;
+    analyticsTitle: string;
+    analyticsDesc: string;
+    ga4Label: string;
+    tableCaption: string;
+    colName: string;
+    colPurpose: string;
+    colDuration: string;
+    /** cookie 清单；名称与有效期是技术事实，用途随类别走 */
+    rows: readonly { name: string; purpose: string; duration: string }[];
+    /** 偏好中心右上角关闭按钮的无障碍标签 */
+    close: string;
+    /** 隐私政策链接文案（仅当 site.config 配了路径才渲染） */
+    privacyLink: string;
+  };
 }
 
 const UI_ZH: UiCopy = {
@@ -462,6 +495,33 @@ const UI_ZH: UiCopy = {
     message: "链接可能已失效或输入有误。",
     home: "返回首页",
     posts: "浏览文章",
+  },
+  consent: {
+    title: "Cookie 与数据收集",
+    description:
+      "本站默认用 Google Analytics 4 统计阅读情况：哪些文章有人读、访客从哪里来。你可以随时关闭，关闭后立即停止收集并清除已写入的分析 Cookie。",
+    acceptAll: "保持开启",
+    acceptNecessary: "关闭分析",
+    manage: "自定义",
+    prefsTitle: "Cookie 偏好设置",
+    save: "保存选择",
+    necessaryTitle: "必要",
+    necessaryDesc:
+      "维持站点基本功能：记住你的深浅色主题选择，以及这次的 Cookie 决定。无法关闭。",
+    analyticsTitle: "分析",
+    analyticsDesc:
+      "统计浏览量、来源渠道与阅读深度。默认开启，可随时关闭；关闭后本类别下的 Cookie 会被清除。数据以聚合形式使用，不用于广告投放，也不与第三方共享。",
+    ga4Label: "Google Analytics 4",
+    tableCaption: "本站写入的 Cookie",
+    colName: "名称",
+    colPurpose: "用途",
+    colDuration: "有效期",
+    rows: [
+      { name: "_ga", purpose: "区分独立访客", duration: "2 年" },
+      { name: "_ga_*", purpose: "维持 GA4 会话状态（* 为容器 ID）", duration: "2 年" },
+    ],
+    close: "关闭",
+    privacyLink: "隐私政策",
   },
 };
 
@@ -710,6 +770,33 @@ const UI_EN: UiCopy = {
     message: "The link may be broken or mistyped.",
     home: "Back to home",
     posts: "Browse posts",
+  },
+  consent: {
+    title: "Cookies & data collection",
+    description:
+      "Google Analytics 4 runs by default to see which posts get read and where visitors come from. You can turn it off at any time — that stops collection and clears the analytics cookies already set.",
+    acceptAll: "Keep it on",
+    acceptNecessary: "Turn off analytics",
+    manage: "Customize",
+    prefsTitle: "Cookie preferences",
+    save: "Save choices",
+    necessaryTitle: "Necessary",
+    necessaryDesc:
+      "Keeps the site working: remembers your light/dark theme choice and this cookie decision. Cannot be switched off.",
+    analyticsTitle: "Analytics",
+    analyticsDesc:
+      "Counts page views, referral sources and reading depth. On by default; turning it off clears the cookies in this category. Used in aggregate — never for advertising, never shared.",
+    ga4Label: "Google Analytics 4",
+    tableCaption: "Cookies set by this site",
+    colName: "Name",
+    colPurpose: "Purpose",
+    colDuration: "Duration",
+    rows: [
+      { name: "_ga", purpose: "Distinguishes unique visitors", duration: "2 years" },
+      { name: "_ga_*", purpose: "Maintains GA4 session state (* = container ID)", duration: "2 years" },
+    ],
+    close: "Close",
+    privacyLink: "Privacy policy",
   },
 };
 

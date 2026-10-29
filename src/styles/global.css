@@ -298,6 +298,12 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
 .footer-inner a { color: var(--muted); }
 .footer-inner a:hover { color: var(--accent); }
 .footer-sub { margin: 6px 0 0; }
+/* 「Cookie 偏好设置」入口：行为是按钮（改设置），外观要与旁边的链接一致 */
+.footer-inner .footer-link-btn {
+  background: none; border: 0; padding: 0; font: inherit; color: var(--muted);
+  cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.footer-inner .footer-link-btn:hover { color: var(--accent); }
 .back-to-top {
   position: fixed; right: 22px; bottom: 22px; z-index: 40;
   width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
@@ -812,4 +818,192 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
     font-size: 11.5px; font-weight: 700; letter-spacing: .06em;
     text-transform: uppercase; color: var(--muted);
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Cookie 同意横幅（vanilla-cookieconsent v3）
+
+   颜色一律映射到本站变量，不单独写亮/暗两套 —— --surface / --ink 这些本身
+   随 [data-theme] 切换，映射一次两种主题自动都对。
+   用 #cc-main 这个 ID 选择器：特异性高于库的 .cc--darkmode，覆盖稳定生效。
+   库里那套 .cc--darkmode 变量因此不参与配色，只用于开启 color-scheme:
+   dark（让滚动条、原生控件跟着变暗），那个类由组件同步 data-theme 挂上。
+   ══════════════════════════════════════════════════════════════════════ */
+#cc-main {
+  --cc-font-family: var(--font, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif);
+
+  /* 面板与文字 */
+  --cc-bg: var(--surface);
+  --cc-primary-color: var(--ink);
+  --cc-secondary-color: var(--muted);
+  --cc-link-color: var(--accent);
+
+  /* 分隔线与类别卡片 */
+  --cc-separator-border-color: var(--line);
+  --cc-section-category-border: var(--line);
+  --cc-cookie-category-block-bg: var(--soft);
+  --cc-cookie-category-block-border: var(--line);
+  --cc-cookie-category-block-hover-bg: var(--tag);
+  --cc-cookie-category-block-hover-border: var(--accent);
+  --cc-cookie-category-expanded-block-bg: var(--surface);
+  --cc-cookie-category-expanded-block-hover-bg: var(--soft);
+
+  /* 主按钮：接受 */
+  --cc-btn-primary-bg: var(--accent);
+  --cc-btn-primary-color: var(--accent-ink);
+  --cc-btn-primary-border-color: var(--accent);
+  --cc-btn-primary-hover-bg: var(--ink);
+  --cc-btn-primary-hover-color: var(--bg);
+  --cc-btn-primary-hover-border-color: var(--ink);
+
+  /* 次按钮：拒绝 / 自定义。与主按钮同权重，不做视觉弱化 */
+  --cc-btn-secondary-bg: var(--tag);
+  --cc-btn-secondary-color: var(--ink);
+  --cc-btn-secondary-border-color: var(--line);
+  --cc-btn-secondary-hover-bg: var(--soft);
+  --cc-btn-secondary-hover-color: var(--ink);
+  --cc-btn-secondary-hover-border-color: var(--muted);
+
+  /* 开关 */
+  --cc-toggle-on-bg: var(--accent);
+  --cc-toggle-off-bg: var(--muted);
+  --cc-toggle-on-knob-bg: var(--accent-ink);
+  --cc-toggle-off-knob-bg: var(--surface);
+  --cc-toggle-readonly-bg: var(--tag);
+  --cc-toggle-readonly-knob-bg: var(--muted);
+  --cc-toggle-enabled-icon-color: var(--accent-ink);
+  --cc-toggle-disabled-icon-color: var(--surface);
+
+  /* 页脚与遮罩 */
+  --cc-footer-bg: var(--soft);
+  --cc-footer-color: var(--muted);
+  --cc-footer-border-color: var(--line);
+  --cc-overlay-bg: rgba(23, 28, 25, 0.55);
+  --cc-webkit-scrollbar-bg: var(--line);
+  --cc-webkit-scrollbar-hover-bg: var(--muted);
+
+  /* 形状：与站点卡片、按钮保持同一套圆角语言 */
+  --cc-modal-border-radius: var(--radius);
+  --cc-btn-border-radius: var(--radius-pill);
+  --cc-pm-toggle-border-radius: var(--radius-pill);
+}
+
+/*
+ * ── 底部通栏（bar）的按钮排布与配色 ─────────────────────────────────
+ *
+ * 三个按钮同为一行：保持开启 | 关闭分析 | 自定义。
+ *
+ * 「接受绿、其余浅」这条分工受库的结构限制：acceptAllBtn 与
+ * acceptNecessaryBtn 共用同一个 .cm__btn 类，库里没有语义修饰类
+ * （只有「自定义」带 --secondary）。所以要单独给「关闭分析」上浅色，
+ * 只能按位置选 —— btn-group 里的最后一个。代价是按钮顺序一变这里就
+ * 错位；好在错位在视觉上一眼可见，不会静默失效。
+ */
+#cc-main .cm--bar .cm__btns > .cm__btn-group:first-child > .cm__btn:last-child {
+  background: var(--tag);
+  border-color: var(--line);
+  color: var(--ink);
+}
+#cc-main .cm--bar .cm__btns > .cm__btn-group:first-child > .cm__btn:last-child:hover {
+  background: var(--soft);
+  border-color: var(--muted);
+  color: var(--ink);
+}
+
+/*
+ * 等高：三个按钮的字数不同（英文 Turn off analytics 还会折行），不显式
+ * 居中拉伸就会一高一矮。min-height 同时兜住 40px 的触控目标下限。
+ */
+#cc-main .cm--bar .cm__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+}
+
+/*
+ * 桌面端改成「左文字、右按钮」的横带。
+ *
+ * 库的 bar 默认把文字和按钮上下堆叠，在宽屏上会变成两段、按钮被
+ * justify-content: space-between 推到最右，中间空出一大片。横排后高度
+ * 少一截，也才像一条真正的通栏。
+ * 窄屏不加这条规则 —— 移动端保持上下堆叠，按钮更好点。
+ */
+@media (min-width: 900px) {
+  /*
+   * 选择器统一带 body 前缀：库的 #cc-main .cm--bar .cm__body 与本文件同
+   * 特异性，谁赢取决于打包顺序 —— 不加这一层，max-width 会被库还原成
+   * 55em，文字列被挤窄、描述多折一行。
+   */
+  body #cc-main .cm--bar .cm__body {
+    display: flex;
+    /* 库在这里是 column（上下堆叠），只改 display 不够，方向必须显式覆盖 */
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 1.1em 0;
+    max-width: 72em;
+  }
+  body #cc-main .cm--bar .cm__texts {
+    flex: 1 1 auto;
+    /* 允许收缩，否则长文案会把按钮挤出容器 */
+    min-width: 0;
+  }
+  body #cc-main .cm--bar .cm__btns {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+  }
+  body #cc-main .cm--bar .cm__title { margin-bottom: 0.25em; }
+  body #cc-main .cm--bar .cm__desc { margin: 0; }
+  /* 三个按钮统一最小宽度，消掉 6px 级的参差 */
+  body #cc-main .cm--bar .cm__btn { min-width: 7em; }
+}
+
+/*
+ * 窄屏也保持一行：库在这个宽度会把按钮改成竖排，三个按钮叠出两行多余
+ * 高度。改回横排后每个按钮约 110px，「保持开启」「关闭分析」都放得下。
+ * 组 1 装两个按钮、组 2 装一个，按 2:1 分配宽度，最终三个按钮各占 1/3。
+ */
+@media (max-width: 640px) {
+  /*
+   * 必须用 !important：库在窄屏那条规则本身就是
+   *   .cm__btns { flex-direction: column !important; ... }
+   * 特异性再高也压不过 !important，只能对等还击。
+   * 这是唯一一处靠「对抗」拿到样式的属性，将来库升级需要重点回归。
+   */
+  body #cc-main .cm--bar .cm__btns { flex-direction: row !important; }
+  /*
+   * 组内还要单独压一次：真机上量过，库在窄屏把这个组从 grid 换成
+   * flex + column，所以 grid-auto-flow 在这里无效，必须改 flex-direction。
+   * 不修的话外层虽然是 row，组内两个按钮仍竖排，「自定义」还会被 stretch
+   * 拉成两行高。
+   */
+  body #cc-main .cm--bar .cm__btns > .cm__btn-group {
+    flex: 2 1 0;
+    flex-direction: row !important;
+    /*
+     * 同一条库规则也作用于「相邻的组」：
+     *   #cc-main .cm__btn-group+.cm__btn-group { margin: .375rem 0 0 !important }
+     * 第二个组因此被压 6px，里面的「自定义」始终比另两个矮一截。
+     */
+    margin: 0 !important;
+  }
+  body #cc-main .cm--bar .cm__btns > .cm__btn-group:last-child { flex: 1 1 0; }
+  /*
+   * 库有一条全局规则给「第二个及之后的按钮」加行间距：
+   *   #cc-main .cm__btn+.cm__btn { margin: .375rem 0 0 !important }
+   * 横排后它把「关闭分析」压低 6px：组高被撑到 46，「保持开启」被 stretch
+   * 拉满 46，另外两个仍是 40 —— 看起来就是大小不齐。
+   * 它也带 !important，所以必须对等还击才能清掉。
+   */
+  /*
+   * 对齐链：外层两组之间、组内按钮之间都要 stretch，三个按钮才会被拉到
+   * 同一高度。「自定义」单独在一个组里，链断在这里就会矮 6px、底边对齐。
+   */
+  body #cc-main .cm--bar .cm__btns,
+  body #cc-main .cm--bar .cm__btns > .cm__btn-group { align-items: stretch; }
+  body #cc-main .cm--bar .cm__btns > .cm__btn-group > .cm__btn { margin: 0 !important; }
+  /* 桌面那条 7em 在这里会把按钮顶出容器，取消掉；高度统一兜到 48px */
+  body #cc-main .cm--bar .cm__btn { min-width: 0; min-height: 48px; }
 }
