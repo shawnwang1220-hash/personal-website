@@ -24,8 +24,14 @@ export interface SiteCopy {
     email: string;
     phone: string;
   };
-  /** 与 SITE.social 同构；新增社交账号时这里与 site.config.ts 需同步 */
-  social: { github: string; linkedin: string };
+  /**
+   * 与 SITE.social 同构 —— 直接取它的类型，新增账号时本文件无需改动。
+   *
+   * 2026-10-29：这里原本写死 `{ github: string; linkedin: string }`，
+   * 加第三个平台就会编译报错，等于把「加账号」这件事锁在类型定义上。
+   * 改为指向 site.config.ts 的同一份类型后，唯一真源回到 site.config。
+   */
+  social: typeof SITE.social;
   stack: readonly string[];
   facts: readonly { label: string; value: string }[];
   /** 首页数据卡：value 为衬线大字号成果数字，label 为口径说明 */
