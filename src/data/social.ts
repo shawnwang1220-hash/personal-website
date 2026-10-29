@@ -6,10 +6,14 @@ import { SITE } from "../site.config";
  * 地址不在这里：地址在 `site.config.ts` 的 `social`，那里同时喂 BaseLayout 的
  * JSON-LD `Person.sameAs`。本文件只负责「这个账号怎么显示」。
  *
- * 两边靠 key 关联（github / linkedin …）：
- *   site.config.ts 有、这里没有 → 不会渲染（首页会在构建期打印告警）
+ * 两边靠 key 关联（github / linkedin …），但**没有强制绑定**：
+ *   site.config.ts 有、这里没有 → 不进图标区，**仍会进 JSON-LD 的 sameAs**
+ *                                  （知乎这类不常更新的平台就走这条路：只做实体佐证，不占 UI）
  *   这里有、site.config.ts 没有 → 不渲染，等于死配置
- * **新增账号时两处都要动。**
+ *
+ * 也就是说：进同一份实体证据链 ≠ 上首页图标。想在图标区显示，才在这里补 label + icon。
+ * 这个区分正是为「sameAs 要全量、图标位只有几个」而设计的 —— 否则每加一个账号
+ * 就得在首页挤进一个图标。
  *
  * 图标内联而非引 public/*.svg：省一次请求，且 `currentColor` 能跟随链接的
  * hover / 主题色变化，外部 <img> 做不到。
@@ -32,16 +36,23 @@ export interface SocialMeta {
  */
 const PARTICLES: Record<string, string> = { linkedin: "LinkedIn" };
 
-const build = (defs: Record<SocialKey, { label: string; icon: string }>): Record<SocialKey, SocialMeta> =>
-  Object.fromEntries(
-    Object.entries(defs).map(([key, v]) => [
-      key,
-      {
-        ...v,
-        aria: (name: string) => `在 ${PARTICLES[key] ?? v.label} 上关注 ${name}`,
-      },
-    ])
-  ) as Record<SocialKey, SocialMeta>;
+/**
+ * 登记「怎么显示」。参数与返回都是 Partial —— 允许某个账号只在 site.config
+ * 里有地址、这里没有元数据（= 只进 sameAs、不上 UI）。
+ */
+function build(
+  defs: Partial<Record<SocialKey, { label: string; icon: string }>>
+): Partial<Record<SocialKey, SocialMeta>> {
+  const out: Partial<Record<SocialKey, SocialMeta>> = {};
+  for (const [key, v] of Object.entries(defs)) {
+    if (!v) continue;
+    out[key as SocialKey] = {
+      ...v,
+      aria: (name: string) => `在 ${PARTICLES[key] ?? v.label} 上关注 ${name}`,
+    };
+  }
+  return out;
+}
 
 export const SOCIAL_META = build({
   github: {

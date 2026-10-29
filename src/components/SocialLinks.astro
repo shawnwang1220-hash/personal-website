@@ -3,9 +3,11 @@ import { SITE } from "../site.config";
 import { SOCIAL_META } from "../data/social";
 import type { Lang } from "../i18n/config";
 
+type SocialKey = keyof typeof SITE.social;
+
 interface Props {
   /** 展示哪几个。省略 = 全部；传入时**数组顺序即渲染顺序** */
-  only?: (keyof typeof SITE.social)[];
+  only?: SocialKey[];
   /** 无障碍标签里的人名，中英各用各的写法 */
   person: string;
   lang: Lang;
@@ -17,14 +19,26 @@ const { only, person, lang, externalHint = true } = Astro.props;
 
 const externalText = lang === "en" ? "(opens in a new tab)" : "（在新窗口打开）";
 
-/** 不传 only 时按 SOCIAL_META 的键序；传了 only 就尊重调用方的顺序 */
-const keys = (only ?? (Object.keys(SOCIAL_META) as (keyof typeof SITE.social)[])) as (
-  | keyof typeof SITE.social
-)[];
+/**
+ * 不传 only → 以 site.config.social 为全集（只有登记了展示元数据的才会渲染）；
+ * 传了 only → 按调用方给的顺序。
+ *
+ * 全集取自 SITE.social 而不是 SOCIAL_META：前者是「有哪些账号」的真源，
+ * 后者只是「哪些账号要画图标」。只进 sameAs、不上 UI 的账号（如知乎）
+ * 在这里被 filter 掉即可，不该因为没注册元数据就让 `only` 里的项凭空消失。
+ */
+const keys: SocialKey[] = only ?? (Object.keys(SITE.social) as SocialKey[]);
 
-const entries = keys
-  .map((key) => ({ key, meta: SOCIAL_META[key], href: SITE.social[key] }))
-  .filter((e) => e.meta && Boolean(e.href));
+/**
+ * flatMap 而不是 map().filter()：SITE.social 的取值是字面量联合类型（as const），
+ * filter 的类型谓词写成 `meta: SocialMeta` 会因为 href 的类型不匹配而报 ts(2677)，
+ * 收窄失败后又连带 3 处 'possibly undefined'。一次 flatMap 就能让两者都成立。
+ */
+const entries = keys.flatMap((key) => {
+  const meta = SOCIAL_META[key];
+  const href = SITE.social[key];
+  return meta && href ? [{ key, meta, href }] : [];
+});
 ---
 
 {

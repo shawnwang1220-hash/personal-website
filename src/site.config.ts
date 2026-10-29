@@ -30,13 +30,24 @@ export const SITE = {
   },
 
   /**
-   * 社交主页。BaseLayout 会把这里的每个地址自动纳入 JSON-LD 的 Person.sameAs ——
+   * 社交主页。BaseLayout 会把这里的**全部地址**自动纳入 JSON-LD 的 Person.sameAs ——
    * sameAs 是搜索引擎与 AI 判断「这些主页背后是同一个人」的主要依据，缺一个
    * 就少一条实体消歧的线索。新增账号只需在这里加一条，无需改布局。
+   *
+   * 地址进 sameAs 与「是否上首页图标」是两件事，分开控制：
+   *   - 这里加了 → 一定进 JSON-LD（无论有没有图标）
+   *   - 想要图标区显示 → 还要在 data/social.ts 的 SOCIAL_META 里登记图标
+   *
+   * 所以不常更新、但能佐证身份的平台（知乎、掘金、CSDN…）只加在这里即可，
+   * 不会挤占首页的社交图标位置。
+   *
+   * 地址规范：必须是**个人主页**且去掉追踪参数（?si= / ?utm_* / ?share_source=）。
+   * 自己写的某篇文章属于 citation，不是 sameAs，放进来会污染实体。
    */
   social: {
     github: "https://github.com/shawnwang1220-hash",
     linkedin: "https://www.linkedin.com/in/tianxu-wang/",
+    zhihu: "https://www.zhihu.com/people/wang-tian-xu-51",
   },
 
   /**
