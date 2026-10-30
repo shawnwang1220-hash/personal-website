@@ -314,11 +314,19 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
 .back-to-top.show { opacity: 1; pointer-events: auto; }
 .back-to-top:hover { transform: translateY(-2px); }
 
-/* ---------- 滚动揭示动画 ---------- */
-.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
-.reveal.in { opacity: 1; transform: none; }
+/* ---------- 滚动揭示动画（渐进增强）----------
+ * 默认**可见**。只有 html 上带 .js 时才隐藏并做入场动画，而 .js 由 Footer 里的内联
+ * 脚本在 IntersectionObserver **注册成功之后**才加上。
+ * 这样脚本被拦截、JS 被禁用、或 observer 构造抛错时，.js 不存在，内容照常显示 ——
+ * 可见性不再依赖 JS。
+ * 反面教材：.reveal 直接写 opacity: 0，一旦脚本没跑，整页卡片静默消失，
+ * DOM 里内容齐全、页面上什么都没有（2026-10-30 案例页就这么空过一次）。 */
+.reveal { opacity: 1; transform: none; }
+.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+.js .reveal.in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; }
+  /* 选择器必须比 .js .reveal 更具体，否则被上面那条压住，动画照放 */
+  .js .reveal { opacity: 1; transform: none; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
