@@ -21,12 +21,15 @@ const resumeUrl = new URL(withTrailingSlash("/resume/"), SITE.url).href;
 const schemaEmail =
   email && !email.includes("example.com") ? `mailto:${email}` : undefined;
 
+/** 电话按 E.164 输出；页面上保留可读的空格分组 */
+const schemaPhone = phone ? `+${phone.replace(/\D/g, "")}` : undefined;
+
 /**
  * 简历页的结构化数据。
  *
  * ProfilePage 把「这个 URL 是某人的资料页」显式表达出来；Person 节点与
  * BaseLayout 注入的精简版同 @id，布局会**按字段合并** —— 所以这里只声明简历页
- * 独有的字段（email / hasOccupation / alumniOf），不重抄 name、jobTitle、
+ * 独有的字段（email / telephone / hasOccupation / alumniOf），不重抄 name、jobTitle、
  * sameAs、knowsAbout。
  *
  * 刻意不塞工作经历：schema.org 对「历史任职」没有简洁准确的表达（worksFor 的
@@ -50,6 +53,7 @@ const jsonLd = [
     "@type": "Person",
     "@id": PERSON_ID,
     ...(schemaEmail ? { email: schemaEmail } : {}),
+    ...(schemaPhone ? { telephone: schemaPhone } : {}),
     hasOccupation: {
       "@type": "Occupation",
       name: SITE.author.role,
@@ -137,16 +141,17 @@ const jsonLd = [
             <span class="job-title">氦图科技 / hireEZ</span>
             <span class="job-date">2021.05 - 2024.07</span>
           </div>
-          <div class="job-meta">Sr. Marketing Operation ｜ IT 服务</div>
+          <div class="job-meta">Sr. Marketing Operations ｜ IT 服务</div>
           <ul class="job-points">
-            <li>全球 B2B AI 招聘 SaaS 企业，负责北美及全球市场 Marketing Operations，支持数字化获客、Marketing Systems 及 Sales 协同。</li>
-            <li><strong>数字化获客体系：</strong>管理 Google Ads、LinkedIn Ads 等海外营销渠道，建立广告与 CRM 销售数据闭环，推动 Google Ads ROAS 提升 3.87 倍，助力公司 ARR 增长 2.5 倍。</li>
-            <li><strong>营销数据与 Tracking 体系：</strong>主导 Universal Analytics 向 GA4 迁移，规划网站事件、广告归因及营销数据采集标准，保障营销数据准确性（GTM、GA4）。</li>
-            <li><strong>Marketing Automation：</strong>设计营销自动化及 Lead Nurture 流程，建立线索培育、客户分层及自动化触达机制，持续提升 Marketing 与 Sales 协同效率（Pardot）。</li>
-            <li><strong>CRM 运营：</strong>持续优化 Lead Management 流程，包括 Lead、Contact、Campaign 及 Opportunity 等核心对象管理，支持 Marketing 与 Sales 线索协同及业务运营。</li>
-            <li><strong>ABM 及营销系统协同：</strong>参与 6sense ABM 平台实施，基于 ICP、Buying Stage 及营销行为构建目标客户分层，协同广告平台、CRM 及营销自动化系统开展精准营销。</li>
-            <li><strong>营销数据分析：</strong>建立营销数据分析体系，持续监控获客、线索转化及销售漏斗表现，为营销策略优化及管理层决策提供数据支持（GA4、Salesforce、CRMA）。</li>
-            <li><strong>Marketing Systems：</strong>推动 Google Ads、GA4、Salesforce、Pardot、6sense、CRMA 等平台跨系统协同，持续优化 Marketing Technology Stack，支撑全球营销运营。</li>
+            <li>全球 B2B AI 招聘 SaaS 企业，负责北美及全球市场 Marketing Operations，覆盖数字化获客、营销数据追踪、CRM 与线索运营及营销自动化。</li>
+            <li><strong>数字化获客：</strong>负责全球 B2B AI 招聘 SaaS 海外市场获客，运营 Google Ads、LinkedIn Ads 等渠道，年度广告投放规模约 80 万美元；推动 Google Ads ROAS 从 3.7 提升至 14.32（约 3.87 倍），助力公司 ARR 增长 2.5 倍。</li>
+            <li><strong>营销数据追踪：</strong>主导 Universal Analytics 向 GA4 迁移，维护 GTM 网站数据采集及广告追踪配置，支持渠道效果监测、转化分析与投放优化。</li>
+            <li><strong>CRM 运营：</strong>负责 Salesforce CRM 日常运营与配置，维护 Lead、Contact、Account、Campaign、Opportunity 等核心业务数据，优化字段配置、数据校验规则及用户权限管理。</li>
+            <li><strong>线索管理与分配：</strong>参与维护 LeanData 线索分配规则，依据客户匹配、区域及公司规模等条件进行线索分配，通过路由日志排查错误分配及线索流转异常。</li>
+            <li><strong>销售运营报表：</strong>建设 Salesforce 自定义报表与 Dashboard，监控销售 Pipeline、SDR 负责客户状态及线索表现，结合 Excel 开展跨系统数据核对与分析，为业务团队提供数据支持。</li>
+            <li><strong>CRM 数据分析：</strong>使用 CRM Analytics 整合 Salesforce、Pardot 及 GA4 数据，完成多来源数据关联、清洗和汇总，建设营销与销售数据看板，并将整理后的最新营销活动信息回写 CRM 客户记录。</li>
+            <li><strong>营销自动化：</strong>负责 Pardot 日常运营，配置营销表单、线索处理动作及项目型受众分流，支持产品发布、展会等营销活动的线索管理与后续协同。</li>
+            <li><strong>ABM 客户运营：</strong>参与 6sense ABM 运营，根据目标客户特征及销售需求维护客户分群，并将分群数据同步至 Salesforce，支持精准营销与销售协同。</li>
           </ul>
         </div>
 

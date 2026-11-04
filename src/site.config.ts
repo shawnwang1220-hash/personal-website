@@ -26,7 +26,7 @@ export const SITE = {
      */
     email: "shawnwang1220@gmail.com",
     /** 留空 → 简历页显示「电话待补充」。务必留空或填真实号码，不要填占位号码（会被公开渲染） */
-    phone: "",
+    phone: "+86 158 1118 3360",
   },
 
   /**
