@@ -25,12 +25,15 @@ const resumeUrl = new URL(withTrailingSlash("/en/resume/"), SITE.url).href;
 const schemaEmail =
   email && !email.includes("example.com") ? `mailto:${email}` : undefined;
 
+/** 电话按 E.164 输出；页面上保留可读的空格分组 */
+const schemaPhone = phone ? `+${phone.replace(/\D/g, "")}` : undefined;
+
 /**
  * 简历页的结构化数据。与中文简历页同构，仅语言相关的字段取值不同。
  *
  * ProfilePage 把「这个 URL 是某人的资料页」显式表达出来；Person 节点与
  * BaseLayout 注入的精简版同 @id，布局会**按字段合并** —— 所以这里只声明简历页
- * 独有的字段（email / hasOccupation / alumniOf），不重抄 name、jobTitle、
+ * 独有的字段（email / telephone / hasOccupation / alumniOf），不重抄 name、jobTitle、
  * sameAs、knowsAbout。
  *
  * 刻意不塞工作经历：schema.org 对历史任职没有简洁准确的表达（worksFor 的语义是
@@ -53,6 +56,7 @@ const jsonLd = [
     "@type": "Person",
     "@id": PERSON_ID,
     ...(schemaEmail ? { email: schemaEmail } : {}),
+    ...(schemaPhone ? { telephone: schemaPhone } : {}),
     hasOccupation: {
       "@type": "Occupation",
       name: copy.author.role,
@@ -145,14 +149,15 @@ const jsonLd = [
           </div>
           <div class="job-meta">Sr. Marketing Operations ｜ IT Services</div>
           <ul class="job-points">
-            <li>Global B2B AI recruiting SaaS company; owned marketing operations for North America and global markets, supporting demand generation, marketing systems and sales alignment.</li>
-            <li><strong>Demand generation:</strong> Managed global marketing channels including Google Ads and LinkedIn Ads, closed the loop between advertising and CRM sales data, driving a 3.87× increase in Google Ads ROAS and contributing to 2.5× ARR growth.</li>
-            <li><strong>Marketing data &amp; tracking:</strong> Led the Universal Analytics to GA4 migration, defining website events, ad attribution and marketing data collection standards to safeguard data accuracy (GTM, GA4).</li>
-            <li><strong>Marketing automation:</strong> Designed marketing automation and lead nurture flows, establishing lead nurturing, customer segmentation and automated outreach mechanisms to steadily improve marketing–sales efficiency (Pardot).</li>
-            <li><strong>CRM operations:</strong> Continuously optimized lead management, covering core objects such as Lead, Contact, Campaign and Opportunity to support marketing–sales collaboration and business operations.</li>
-            <li><strong>ABM &amp; systems orchestration:</strong> Contributed to the 6sense ABM platform rollout, building target account tiers based on ICP, buying stage and marketing behaviour, and orchestrating ad platforms, CRM and marketing automation for precise targeting.</li>
-            <li><strong>Marketing analytics:</strong> Built the marketing analytics framework, continuously monitoring acquisition, lead conversion and sales funnel performance to support marketing optimization and leadership decisions (GA4, Salesforce, CRMA).</li>
-            <li><strong>Marketing systems:</strong> Drove cross-system orchestration across Google Ads, GA4, Salesforce, Pardot, 6sense and CRMA, continuously improving the marketing technology stack that supports global marketing operations.</li>
+            <li>Global B2B AI recruiting SaaS company; owned marketing operations for North America and global markets across demand generation, marketing data &amp; tracking, CRM and lead operations, and marketing automation.</li>
+            <li><strong>Demand generation:</strong> Ran global acquisition for a B2B AI recruiting SaaS, managing Google Ads and LinkedIn Ads at roughly USD 800K in annual ad spend; lifted Google Ads ROAS from 3.7 to 14.32 (3.87×), contributing to 2.5× ARR growth.</li>
+            <li><strong>Marketing data &amp; tracking:</strong> Led the Universal Analytics to GA4 migration; maintained GTM web data collection and ad tracking configuration to support channel performance monitoring, conversion analysis and bid optimisation.</li>
+            <li><strong>CRM operations:</strong> Ran day-to-day Salesforce CRM operations and configuration across core objects — Lead, Contact, Account, Campaign and Opportunity — improving field setup, data validation rules and user permission management.</li>
+            <li><strong>Lead management &amp; routing:</strong> Maintained LeanData routing rules, assigning leads by account match, region and company size, and diagnosed misroutes and stalled lead flows through routing logs.</li>
+            <li><strong>Sales operations reporting:</strong> Built custom Salesforce reports and dashboards to monitor pipeline, SDR-owned account status and lead performance, and cross-checked data across systems in Excel to support business teams.</li>
+            <li><strong>CRM analytics:</strong> Consolidated Salesforce, Pardot and GA4 data in CRM Analytics — joining, cleaning and aggregating multi-source data — to build marketing and sales dashboards, and wrote the latest campaign activity back to CRM account records.</li>
+            <li><strong>Marketing automation:</strong> Ran Pardot day to day, configuring forms, lead processing actions and programme-based audience segmentation for product launches, trade shows and other campaign follow-up.</li>
+            <li><strong>ABM operations:</strong> Contributed to 6sense ABM operations, maintaining account segments based on target account profiles and sales demand, and syncing segments into Salesforce for targeted marketing and sales alignment.</li>
           </ul>
         </div>
 
