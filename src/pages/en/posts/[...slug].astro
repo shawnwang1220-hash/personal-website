@@ -73,7 +73,10 @@ const jsonLd = {
   <section class="section container" style="max-width: 780px;">
     <a class="back-link" href="/en/posts/">{t.post.backLink}</a>
 
-    <article class="card reveal">
+    {/* 正文不加 reveal：内容可见性不该依赖 IntersectionObserver 回调。
+        长文高度是视口的十几倍，比例阈值永远达不成，整篇文章会停在 opacity: 0。
+        入场动画留给卡片与区块，正文一律即时显示。 */}
+    <article class="card">
       <header class="post-head">
         <h1>{title}</h1>
         <div class="post-meta">

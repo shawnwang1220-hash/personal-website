@@ -75,7 +75,12 @@ const host = new URL(SITE.url).host;
             }
           });
         },
-        { threshold: 0.12 }
+        /* threshold 必须是 0，不能写比例阈值。
+         * intersectionRatio = 可见面积 / 元素面积，元素高过视口 N 倍时上限就是 1/N：
+         * 一篇 12000px 的正文在 900px 视口里最高只能到 0.075，写 0.12 就永远不触发，
+         * 元素卡在 opacity: 0 上——内容在 HTML 里、爬虫读得到，人看不见。
+         * 用 rootMargin 的负下边距代替比例阈值，换取「稍微进来一点才淡入」的观感。 */
+        { threshold: 0, rootMargin: "0px 0px -8% 0px" }
       );
       els.forEach(function (el) {
         io.observe(el);
