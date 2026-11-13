@@ -116,8 +116,10 @@ const jsonLd = [
             <span class="job-date">2025.10 - 至今</span>
           </div>
           <ul class="job-points">
-            <li>独立实践 Server-Side Tagging、GTM、GA4 等数字营销数据技术，搭建并调试 Web 与 Server-Side 数据链路，完成事件追踪、数据回传及归因相关方案验证。</li>
-            <li>基于 Dify、Notion 等 AI 与自动化工具搭建个人工作流，将网页、文档等非结构化信息提取、整理并转换为结构化数据，形成可复用的信息处理流程。</li>
+            <li>搭建个人站 tianxu.uk（Astro + Cloudflare，AI 辅助开发），作为营销技术栈试验场，跑通站点、表单、追踪全链路。</li>
+            <li>自建表单到服务端链路，提交同时写入 Cloudflare D1 与 Notion；用隐藏字段将 GA4 Client ID 存入线索记录，GA4 DebugView 验证。</li>
+            <li>配置 GTM + GA4 追踪，自建 Server-Side GTM 测试环境（Stape），初步跑通 GA4 服务端转发。</li>
+            <li>独立排查 GA4 page_view 丢失（其他事件正常、无请求发出），定位到 Google 标签中手填 session_id/session_number 覆盖了 GA4 会话参数，修复后回归验证通过，并整理成公开复盘文章。</li>
           </ul>
         </div>
 
@@ -143,15 +145,19 @@ const jsonLd = [
           </div>
           <div class="job-meta">Sr. Marketing Operations ｜ IT 服务</div>
           <ul class="job-points">
-            <li>全球 B2B AI 招聘 SaaS 企业，负责北美及全球市场 Marketing Operations，覆盖数字化获客、营销数据追踪、CRM 与线索运营及营销自动化。</li>
-            <li><strong>数字化获客：</strong>负责全球 B2B AI 招聘 SaaS 海外市场获客，运营 Google Ads、LinkedIn Ads 等渠道，年度广告投放规模约 80 万美元；推动 Google Ads ROAS 从 3.7 提升至 14.32（约 3.87 倍），助力公司 ARR 增长 2.5 倍。</li>
-            <li><strong>营销数据追踪：</strong>主导 Universal Analytics 向 GA4 迁移，维护 GTM 网站数据采集及广告追踪配置，支持渠道效果监测、转化分析与投放优化。</li>
-            <li><strong>CRM 运营：</strong>负责 Salesforce CRM 日常运营与配置，维护 Lead、Contact、Account、Campaign、Opportunity 等核心业务数据，优化字段配置、数据校验规则及用户权限管理。</li>
-            <li><strong>线索管理与分配：</strong>参与维护 LeanData 线索分配规则，依据客户匹配、区域及公司规模等条件进行线索分配，通过路由日志排查错误分配及线索流转异常。</li>
-            <li><strong>销售运营报表：</strong>建设 Salesforce 自定义报表与 Dashboard，监控销售 Pipeline、SDR 负责客户状态及线索表现，结合 Excel 开展跨系统数据核对与分析，为业务团队提供数据支持。</li>
-            <li><strong>CRM 数据分析：</strong>使用 CRM Analytics 整合 Salesforce、Pardot 及 GA4 数据，完成多来源数据关联、清洗和汇总，建设营销与销售数据看板，并将整理后的最新营销活动信息回写 CRM 客户记录。</li>
-            <li><strong>营销自动化：</strong>负责 Pardot 日常运营，配置营销表单、线索处理动作及项目型受众分流，支持产品发布、展会等营销活动的线索管理与后续协同。</li>
-            <li><strong>ABM 客户运营：</strong>参与 6sense ABM 运营，根据目标客户特征及销售需求维护客户分群，并将分群数据同步至 Salesforce，支持精准营销与销售协同。</li>
+            <li>全球 B2B AI 招聘 SaaS 企业，负责北美及全球市场 Marketing Operations，工作覆盖数字化获客、广告转化归因、CRM 与销售线索运营、营销自动化及跨系统数据协同。</li>
+            <li>数字化获客：负责 Google Ads、LinkedIn Ads 等海外广告渠道运营，年度广告投放规模约 80 万美元；推动 Google Ads ROAS 从 3.7 提升至 14.32，达到原来的约 3.87 倍，助力公司 ARR 增长 2.5 倍。</li>
+            <li>广告转化回传：将 Salesforce 中的线索及销售阶段数据作为线下转化（Offline Conversion）回传广告平台，结合不同渠道的线索质量及后续转化表现评估投放效果，支持广告优化与预算调整。</li>
+            <li>营销数据追踪与归因：主导 Universal Analytics 向 GA4 迁移，使用 GTM 建设和维护网站事件采集及转化追踪，完善营销数据采集与归因基础，支持渠道效果分析和广告优化。</li>
+            <li>网站转化测试：使用 Google Optimize、GTM、VWO 开展网站页面及转化路径测试，验证页面调整假设，根据测试结果评估改动效果，为是否推广页面方案提供依据。</li>
+            <li>Salesforce CRM 运营：负责 Salesforce 日常运营与业务配置，维护 Lead、Contact、Account、Campaign、Opportunity 等核心对象及字段，配置数据校验、公式逻辑和多级选项依赖，并管理用户账号及权限；针对 Lead 进入 Disqualified 状态的场景设置原因填写校验。</li>
+            <li>CRM 数据质量管理：通过 Salesforce 报表、数据导出及 Excel 清洗和核对业务数据，处理重复 Lead、Contact、Account、缺失值及字段格式不一致等问题；结合跨系统数据匹配，改善 CRM 数据的完整性和可用性。</li>
+            <li>线索管理与自动分配：参与维护 LeanData 线索路由规则，根据 Lead 与现有 Account 的匹配关系，以及区域、国家和公司规模等条件进行线索分配；通过路由日志排查错分、漏分及线索流转异常。</li>
+            <li>销售运营报表：建设 Salesforce 自定义报表和 Dashboard，监控 Opportunity Pipeline、SDR 负责客户状态及线索表现；根据业务需求组合关联数据，排查报表字段、筛选条件及数据逻辑问题，为 Marketing、Sales 团队提供运营分析支持。</li>
+            <li>CRM Analytics 数据整合：使用 CRM Analytics（CRMA）搭建数据处理 Recipe 与 Dashboard，整合 Salesforce、Pardot 及 Google Analytics（UA/GA4）数据，完成多来源数据关联、清洗和汇总；使用 Recipe 将整理后的最新营销活动信息加工并回写 Salesforce Contact。</li>
+            <li>营销自动化与线索培育：负责 Pardot 日常运营，创建和维护营销表单、线索处理动作及自动化流程；通过 Engagement Studio 根据地区、活动和客户属性进行受众分流与名单管理，支持产品发布、展会及 Academy 等项目的线索培育和后续协同。</li>
+            <li>ABM 客户分群与数据激活：参与 6sense ABM 运营，基于既有 ICP、Buying Stage 及客户行为信息维护目标客户 Segment；根据 SDR 需求执行客户分群与数据编排，将分群结果推送至 Salesforce，支持精准营销和销售协同。</li>
+            <li>跨系统运营与异常排查：利用 Google Ads 与 Pardot Campaign 的对应关系开展跨平台活动效果分析；排查 Pardot 与 Salesforce 的数据同步异常，并在线索路由异常时结合 LeanData 日志追溯 6sense 上游字段同步及数据格式问题，保障不同营销与 CRM 平台间的数据协作。</li>
           </ul>
         </div>
 
@@ -188,7 +194,7 @@ const jsonLd = [
           <span class="skill-label">工具平台</span>
           <div class="tags">
             <span class="tag">Google Ads</span><span class="tag">LinkedIn Ads</span><span class="tag">GA4</span>
-            <span class="tag">Google Tag Manager</span><span class="tag">Salesforce</span><span class="tag">Pardot</span>
+            <span class="tag">Google Tag Manager</span><span class="tag">Server-Side GTM</span><span class="tag">VWO</span><span class="tag">Salesforce</span><span class="tag">Pardot</span>
             <span class="tag">6sense</span><span class="tag">Zoho</span><span class="tag">纷享销客</span>
           </div>
         </div>
