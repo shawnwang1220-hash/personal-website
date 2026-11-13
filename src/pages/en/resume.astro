@@ -122,7 +122,10 @@ const jsonLd = [
             <span class="job-date">Oct 2025 - Present</span>
           </div>
           <ul class="job-points">
-            <li>Hands-on work with digital marketing data technologies including server-side tagging, GTM and GA4: built and debugged web and server-side data pipelines, and validated event tracking, conversion feedback and attribution designs.</li>
+            <li><strong>Personal site, end to end:</strong> Built tianxu.uk (Astro + Cloudflare, AI-assisted development) as a test bed for the marketing stack, running the full site, form and tracking chain on one domain.</li>
+            <li><strong>Form to server pipeline:</strong> Built the form-to-server pipeline from scratch; each submission writes to both Cloudflare D1 and Notion, and a hidden field stores the GA4 Client ID on the lead record, verified in GA4 DebugView.</li>
+            <li><strong>Web and server-side tracking:</strong> Configured GTM + GA4 web tracking and stood up a Server-Side GTM test environment (Stape), getting GA4 server-side forwarding running.</li>
+            <li><strong>Debugging and write-up:</strong> Independently traced a GA4 page_view drop (other events firing normally, no request sent) to manually entered session_id / session_number in the Google tag overriding GA4 session parameters; the fix passed regression testing and was written up as a public post-mortem.</li>
             <li>Built personal workflows on AI and automation tools such as Dify and Notion, extracting unstructured information from web pages and documents and converting it into structured, reusable data processes.</li>
           </ul>
         </div>
@@ -194,7 +197,7 @@ const jsonLd = [
           <span class="skill-label">Platforms</span>
           <div class="tags">
             <span class="tag">Google Ads</span><span class="tag">LinkedIn Ads</span><span class="tag">GA4</span>
-            <span class="tag">Google Tag Manager</span><span class="tag">Salesforce</span><span class="tag">Pardot</span>
+            <span class="tag">Google Tag Manager</span><span class="tag">Server-Side GTM</span><span class="tag">Salesforce</span><span class="tag">Pardot</span>
             <span class="tag">6sense</span><span class="tag">Zoho</span><span class="tag">ShareCRM</span>
           </div>
         </div>
