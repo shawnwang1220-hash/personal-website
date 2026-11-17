@@ -645,10 +645,16 @@ a.tag:hover { background: color-mix(in srgb, var(--accent) 18%, var(--tag)); tex
   /* ---- 技能 / 教育 ---- */
   .skill-group { margin-bottom: 4px; }
   .skill-label, .skill-items { font-size: 9.5pt; }
-  /* 打印时标签去掉胶囊描边与浅底，靠间距分列 —— 圆角块在纸上没有交互暗示，
-     却把 11 个平台挤成两行；纯文本一行的信息量相同、高度更小。 */
-  .tags { gap: 0 8px; margin-top: 2px; }
-  .tag { font-size: 9pt; padding: 0; border: none; background: none; border-radius: 0; }
+  /* 打印保留标签胶囊（浅底 + 圆角 + 强调色字），只把尺寸压到纸上合适的大小：
+     屏幕的 12.5px / 5px 11px 在 A4 上偏大，11 个平台会摊成三行。
+     这里 8.5pt / 1.5px 8px 刚好两行；padding 取 8px 而不是更紧的 6px，是为了让
+     第二行落到 2 个标签（Zoho + ShareCRM）而不是孤零零 1 个，换行看着才不突兀。
+     print-color-adjust: exact 已开，底色不会在打印时丢失。 */
+  .tags { gap: 4px 6px; margin-top: 3px; }
+  .tag {
+    font-size: 8.5pt; padding: 1.5px 8px; line-height: 1.25;
+    border-radius: var(--radius-pill); background: var(--tag); color: var(--accent);
+  }
   .edu-item { padding: 2px 0; }
   .edu-degree, .edu-date { font-size: 9.5pt; }
 
